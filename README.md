@@ -1,8 +1,8 @@
-# 🍽️ NutriTracker PWA
+# NutriTracker PWA
 
 Application Progressive Web App (PWA) de suivi nutritionnel avec dictée vocale.
 
-## 📋 Fonctionnalités
+## Fonctionnalités
 
 - **Dictée vocale** : Dictez vos repas avec la Web Speech API
 - **Suivi calorique** : Visualisez votre consommation quotidienne
@@ -10,7 +10,7 @@ Application Progressive Web App (PWA) de suivi nutritionnel avec dictée vocale.
 - **PWA** : Installable sur mobile et desktop, fonctionne hors ligne
 - **Intégration n8n** : Backend IA pour l'analyse nutritionnelle
 
-## 🚀 Installation
+## Installation
 
 ### Option 1 : Serveur local simple
 
@@ -29,13 +29,13 @@ Puis ouvrez `http://localhost:8080` dans votre navigateur.
 1. Installez l'extension "Live Server" dans VS Code
 2. Clic droit sur `index.html` → "Open with Live Server"
 
-## 📱 Installation sur mobile
+## Installation sur mobile
 
 1. Ouvrez l'application dans Chrome (Android) ou Safari (iOS)
 2. Appuyez sur "Ajouter à l'écran d'accueil"
 3. L'application sera installée comme une app native
 
-## 🏗️ Structure du projet
+## Structure du projet
 
 ```
 nutritracker/
@@ -51,7 +51,7 @@ nutritracker/
 └── README.md
 ```
 
-## 🎨 Technologies
+## Technologies
 
 - **HTML5** + **CSS3** + **JavaScript** (Vanilla)
 - **Tailwind CSS** (CDN)
@@ -59,26 +59,22 @@ nutritracker/
 - **localStorage** pour la persistance des données
 - **Service Worker** pour le mode offline
 
-## 🔗 Endpoints API (n8n)
+## Endpoints API (n8n)
 
 | Endpoint | Méthode | Description |
 |----------|---------|-------------|
 | `/webhook/inscription-client` | POST | Inscription utilisateur |
 | `/webhook/dictee-nutrition-v3` | POST | Analyse nutritionnelle |
 
-## 📝 Utilisation
+## Utilisation
 
 1. **Page Login** : Entrez votre email, téléphone et objectif calorique
 2. **Page App** : Appuyez sur le bouton 🎙️ pour dicter vos repas
 3. L'IA analyse automatiquement les calories et les ajoute à l'historique
 
-## 🌐 Compatibilité
+## Compatibilité
 
 - ✅ Chrome (Android/Desktop)
 - ✅ Safari (iOS/macOS)
 - ✅ Edge
 - ❌ Firefox (Web Speech API non supportée)
-
-## 📄 Licence
-
-MIT License - Libre d'utilisation
