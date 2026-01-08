@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#10b981">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>NutriTracker - Suivi</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+</head>
+
+<body class="bg-background text-text min-h-screen">
+
+    <div class="container pb-8">
+        <!-- Header -->
+        <header class="header">
+            <button id="btn-back" class="header-btn" title="Retour">
+                <span>←</span>
+            </button>
+            <h1 class="header-title">
+                <span>NutriTracker</span>
+                <span class="header-icon">🍽️</span>
+            </h1>
+            <button id="btn-settings" class="header-btn" title="Paramètres">
+                <span>⚙️</span>
+            </button>
+        </header>
+
+        <!-- Date du jour -->
+        <div class="date-display">
+            <span class="date-label">Aujourd'hui :</span>
+            <span id="date-today" class="date-value"></span>
+        </div>
+
+        <!-- Compteur kcal -->
+        <div class="kcal-card">
+            <div class="kcal-header">
+                <span id="total-kcal" class="kcal-value">0 / 2500 kcal</span>
+            </div>
+            <div class="progress-bar">
+                <div id="barre-progres" class="progress-bar-fill bg-primary" style="width: 0%"></div>
+            </div>
+            <div class="kcal-footer">
+                <span id="pourcentage" class="pourcentage-text">0%</span>
+            </div>
+        </div>
+
+        <!-- Bouton Dicter -->
+        <div class="dicter-section">
+            <button id="btn-dicter" class="btn-dicter" title="Dicter un repas">
+                <span class="dicter-icon">🎙️</span>
+                <span id="dicter-text" class="dicter-label">Dicter</span>
+            </button>
+            <p id="dicter-status" class="dicter-hint">Appuyez pour dicter votre repas</p>
+        </div>
+
+        <!-- Historique -->
+        <section class="historique-section">
+            <h2 class="historique-title">Historique du jour :</h2>
+            <div id="historique-liste" class="historique-liste">
+                <p class="text-gray-500 text-center py-4">Aucun repas enregistré aujourd'hui</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal Settings -->
+    <div id="modal-settings" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">⚙️ Paramètres</h3>
+                <button id="modal-close" class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <span class="setting-label">Email</span>
+                    <span id="setting-email" class="setting-value">-</span>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">Téléphone</span>
+                    <span id="setting-telephone" class="setting-value">-</span>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">Objectif journalier</span>
+                    <span id="setting-objectif" class="setting-value">-</span>
+                </div>
+                <hr class="my-4 border-border">
+                <button id="btn-logout" class="btn-danger w-full">
+                    Déconnexion
+                </button>
+                <button id="btn-clear-history" class="btn-secondary w-full mt-3">
+                    Effacer l'historique du jour
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden">
+        <span id="toast-message"></span>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
