@@ -7,112 +7,144 @@
     <meta name="theme-color" content="#10b981">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>NutriTracker - Suivi</title>
+    <title>NutriTracker</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Custom Styles -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
 
-<body class="bg-background text-text min-h-screen">
+<body class="app-body">
 
-    <div class="container pb-8">
-        <!-- Header -->
-        <header class="header">
-            <button id="btn-back" class="header-btn" title="Retour">
-                <span>←</span>
-            </button>
-            <h1 class="header-title">
-                <span>NutriTracker</span>
-                <span class="header-icon">🍽️</span>
-            </h1>
-            <button id="btn-settings" class="header-btn" title="Paramètres">
-                <span>⚙️</span>
-            </button>
-        </header>
+    <!-- Header -->
+    <header class="app-header">
+        <button id="btn-back" class="icon-btn" title="Retour">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+        </button>
+        <div class="header-brand">
+            <span class="brand-icon">🍽️</span>
+            <span class="brand-name">NutriTracker</span>
+        </div>
+        <button id="btn-settings" class="icon-btn" title="Paramètres">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path
+                    d="M10 12.5C11.3807 12.5 12.5 11.3807 12.5 10C12.5 8.61929 11.3807 7.5 10 7.5C8.61929 7.5 7.5 8.61929 7.5 10C7.5 11.3807 8.61929 12.5 10 12.5Z"
+                    stroke="currentColor" stroke-width="1.5" />
+                <path
+                    d="M16.25 10C16.25 10.625 16.875 11.25 17.5 11.25C17.5 11.875 17.5 12.5 16.875 13.125L15.625 14.375C15 15 14.375 15 13.75 14.375L13.125 13.75C12.5 13.125 11.875 13.75 11.25 13.75V15C11.25 15.625 10.625 16.25 10 16.25C9.375 16.25 8.75 15.625 8.75 15V13.75C8.125 13.75 7.5 13.125 6.875 13.75L6.25 14.375C5.625 15 5 15 4.375 14.375L3.125 13.125C2.5 12.5 2.5 11.875 3.125 11.25L3.75 10.625C4.375 10 3.75 9.375 3.75 8.75H2.5C1.875 8.75 1.25 8.125 1.25 7.5C1.25 6.875 1.875 6.25 2.5 6.25H3.75C3.75 5.625 4.375 5 5 4.375L5.625 3.75C6.25 3.125 6.875 3.125 7.5 3.75L8.125 4.375C8.75 5 9.375 4.375 10 4.375V3.125C10 2.5 10.625 1.875 11.25 1.875C11.875 1.875 12.5 2.5 12.5 3.125V4.375C13.125 4.375 13.75 5 14.375 5.625L15 6.25C15.625 6.875 15.625 7.5 15 8.125L14.375 8.75C13.75 9.375 14.375 10 14.375 10.625H15.625C16.25 10.625 16.875 10 16.25 10Z"
+                    stroke="currentColor" stroke-width="1.5" />
+            </svg>
+        </button>
+    </header>
 
-        <!-- Date du jour -->
-        <div class="date-display">
-            <span class="date-label">Aujourd'hui :</span>
-            <span id="date-today" class="date-value"></span>
+    <div class="app-container">
+        <!-- Date -->
+        <div class="date-section">
+            <span id="date-today" class="date-text"></span>
         </div>
 
-        <!-- Compteur kcal -->
-        <div class="kcal-card">
-            <div class="kcal-header">
-                <span id="total-kcal" class="kcal-value">0 / 2500 kcal</span>
+        <!-- Calorie Counter Card -->
+        <div class="calorie-card">
+            <div class="calorie-header">
+                <span class="calorie-label">Calories consommées</span>
             </div>
-            <div class="progress-bar">
-                <div id="barre-progres" class="progress-bar-fill bg-primary" style="width: 0%"></div>
+            <div class="calorie-value-wrapper">
+                <span id="total-kcal" class="calorie-value">0 / 2500</span>
+                <span class="calorie-unit">kcal</span>
             </div>
-            <div class="kcal-footer">
-                <span id="pourcentage" class="pourcentage-text">0%</span>
+            <div class="progress-container">
+                <div class="progress-track">
+                    <div id="barre-progres" class="progress-fill" style="width: 0%"></div>
+                </div>
+                <span id="pourcentage" class="progress-percentage">0%</span>
             </div>
         </div>
 
-        <!-- Bouton Dicter -->
-        <div class="dicter-section">
-            <button id="btn-dicter" class="btn-dicter" title="Dicter un repas">
-                <span class="dicter-icon">🎙️</span>
-                <span id="dicter-text" class="dicter-label">Dicter</span>
+        <!-- Dictation Button -->
+        <div class="dictation-section">
+            <button id="btn-dicter" class="dictation-btn" title="Dicter un repas">
+                <div class="dictation-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                        <path
+                            d="M12 1C10.3431 1 9 2.34315 9 4V12C9 13.6569 10.3431 15 12 15C13.6569 15 15 13.6569 15 12V4C15 2.34315 13.6569 1 12 1Z"
+                            stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M19 10V12C19 15.866 15.866 19 12 19M5 10V12C5 15.866 8.13401 19 12 19M12 19V23M8 23H16"
+                            stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </div>
+                <span id="dicter-text" class="dictation-text">Dicter un repas</span>
             </button>
-            <p id="dicter-status" class="dicter-hint">Appuyez pour dicter votre repas</p>
+            <p id="dicter-status" class="dictation-hint">Appuyez pour commencer</p>
         </div>
 
-        <!-- Historique -->
-        <section class="historique-section">
-            <h2 class="historique-title">Historique du jour :</h2>
-            <div id="historique-liste" class="historique-liste">
-                <p class="text-gray-500 text-center py-4">Aucun repas enregistré aujourd'hui</p>
+        <!-- History Section -->
+        <div class="history-section">
+            <h2 class="history-title">Aujourd'hui</h2>
+            <div id="historique-liste" class="history-list">
+                <div class="empty-state">
+                    <div class="empty-icon">📝</div>
+                    <p class="empty-text">Aucun repas enregistré</p>
+                    <p class="empty-subtext">Commencez par dicter votre premier repas</p>
+                </div>
             </div>
-        </section>
+        </div>
     </div>
 
-    <!-- Modal Settings -->
+    <!-- Settings Modal -->
     <div id="modal-settings" class="modal hidden">
         <div class="modal-overlay"></div>
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">⚙️ Paramètres</h3>
-                <button id="modal-close" class="modal-close">×</button>
+        <div class="modal-panel">
+            <div class="modal-panel-header">
+                <h3 class="modal-panel-title">Paramètres</h3>
+                <button id="modal-close" class="modal-close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </button>
             </div>
-            <div class="modal-body">
-                <div class="setting-item">
-                    <span class="setting-label">Email</span>
-                    <span id="setting-email" class="setting-value">-</span>
+            <div class="modal-panel-body">
+                <div class="settings-group">
+                    <div class="setting-row">
+                        <span class="setting-label">Email</span>
+                        <span id="setting-email" class="setting-value">-</span>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Téléphone</span>
+                        <span id="setting-telephone" class="setting-value">-</span>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Objectif quotidien</span>
+                        <span id="setting-objectif" class="setting-value">-</span>
+                    </div>
                 </div>
-                <div class="setting-item">
-                    <span class="setting-label">Téléphone</span>
-                    <span id="setting-telephone" class="setting-value">-</span>
+                <div class="modal-actions">
+                    <button id="btn-clear-history" class="action-btn action-btn-secondary">
+                        Effacer l'historique du jour
+                    </button>
+                    <button id="btn-logout" class="action-btn action-btn-danger">
+                        Déconnexion
+                    </button>
                 </div>
-                <div class="setting-item">
-                    <span class="setting-label">Objectif journalier</span>
-                    <span id="setting-objectif" class="setting-value">-</span>
-                </div>
-                <hr class="my-4 border-border">
-                <button id="btn-logout" class="btn-danger w-full">
-                    Déconnexion
-                </button>
-                <button id="btn-clear-history" class="btn-secondary w-full mt-3">
-                    Effacer l'historique du jour
-                </button>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="toast hidden">
+    <!-- Toast -->
+    <div id="toast" class="toast-notification hidden">
         <span id="toast-message"></span>
     </div>
 
