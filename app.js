@@ -3,7 +3,9 @@ const CONFIG = {
   endpoints: {
     inscription: 'https://n8n.srv957891.hstgr.cloud/webhook/inscription-client',
     dictee: 'https://n8n.srv957891.hstgr.cloud/webhook/dictee-nutrition-v3',
-    historique: 'https://n8n.srv957891.hstgr.cloud/webhook/historique'
+    historique: 'https://n8n.srv957891.hstgr.cloud/webhook/historique',
+    updateItem: 'https://n8n.srv957891.hstgr.cloud/webhook/update-item',
+    deleteItem: 'https://n8n.srv957891.hstgr.cloud/webhook/delete-item'
   }
 };
 
@@ -546,15 +548,30 @@ async function loadHistory() {
       const details = detailsParts.join(' · ');
 
       const itemClass = isSport ? 'repas-item sport-item' : 'repas-item';
+      const rowNumber = r.row_number || 0;
 
       return `
-        <div class="${itemClass}">
+        <div class="${itemClass}" data-row="${rowNumber}">
           <span class="icon">${icon}</span>
           <div class="info">
             <span class="nom">${aliment}</span>
             <span class="details">${momentText}${details ? ' · ' + details : ''}</span>
           </div>
           <span class="kcal">${kcal} kcal</span>
+          <div class="item-actions">
+            <button class="btn-edit" onclick="openEditModal(${rowNumber}, '${aliment.replace(/'/g, "\\'")}', ${quantite || 0}, '${unite}', ${kcal})" title="Modifier">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </button>
+            <button class="btn-delete" onclick="deleteItem(${rowNumber})" title="Supprimer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+            </button>
+          </div>
         </div>
       `;
     }).join('');
@@ -623,6 +640,112 @@ function updateTotalFromData(data) {
 function updateTotal() {
   // Cette fonction est maintenant appelée via updateTotalFromData
   // On ne fait rien ici car loadHistory s'en charge
+}
+
+// GESTION DE L'ÉDITION ET SUPPRESSION
+
+// Ouvre la modale d'édition avec les données de l'élément
+function openEditModal(rowNumber, nom, quantite, unite, kcal) {
+  const modal = document.getElementById('modal-edit');
+  if (!modal) return;
+
+  // Remplir les champs
+  document.getElementById('edit-row-number').value = rowNumber;
+  document.getElementById('edit-nom').value = nom;
+  document.getElementById('edit-quantite').value = quantite;
+  document.getElementById('edit-unite').value = unite;
+  document.getElementById('edit-kcal').value = kcal;
+
+  // Afficher la modale
+  modal.classList.remove('hidden');
+}
+
+// Ferme la modale d'édition
+function closeEditModal() {
+  const modal = document.getElementById('modal-edit');
+  if (modal) {
+    modal.classList.add('hidden');
+  }
+}
+
+// Sauvegarde les modifications de l'élément
+async function saveEditItem() {
+  const rowNumber = document.getElementById('edit-row-number').value;
+  const nom = document.getElementById('edit-nom').value.trim();
+  const quantite = parseFloat(document.getElementById('edit-quantite').value) || 0;
+  const unite = document.getElementById('edit-unite').value.trim();
+  const kcal = parseInt(document.getElementById('edit-kcal').value, 10) || 0;
+
+  if (!nom) {
+    showNotification('❌ Le nom est requis');
+    return;
+  }
+
+  try {
+    showNotification('⏳ Mise à jour en cours...');
+
+    const response = await fetch(CONFIG.endpoints.updateItem, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        row_number: parseInt(rowNumber, 10),
+        aliment: nom,
+        quantite: quantite,
+        unite: unite,
+        kcal: kcal
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Erreur serveur');
+    }
+
+    showNotification('✅ Élément modifié !');
+    closeEditModal();
+
+    // Rafraîchir l'historique
+    setTimeout(() => {
+      loadHistory();
+    }, 300);
+
+  } catch (error) {
+    console.error('Erreur modification:', error);
+    showNotification('❌ Erreur lors de la modification');
+  }
+}
+
+// Supprime un élément de l'historique
+async function deleteItem(rowNumber) {
+  if (!confirm('Supprimer cet élément ?')) {
+    return;
+  }
+
+  try {
+    showNotification('⏳ Suppression en cours...');
+
+    const response = await fetch(CONFIG.endpoints.deleteItem, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        row_number: parseInt(rowNumber, 10)
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Erreur serveur');
+    }
+
+    showNotification('✅ Élément supprimé !');
+
+    // Rafraîchir l'historique
+    setTimeout(() => {
+      loadHistory();
+    }, 300);
+
+  } catch (error) {
+    console.error('Erreur suppression:', error);
+    showNotification('❌ Erreur lors de la suppression');
+  }
 }
 
 // INITIALISATION

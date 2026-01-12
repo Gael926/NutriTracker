@@ -562,6 +562,104 @@ body {
   color: #818cf8;
 }
 
+/* Item Actions */
+.item-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.repas-item:hover .item-actions {
+  opacity: 1;
+}
+
+.btn-edit,
+.btn-delete {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-edit {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+}
+
+.btn-edit:hover {
+  background: rgba(99, 102, 241, 0.3);
+  color: #a5b4fc;
+}
+
+.btn-delete {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.btn-delete:hover {
+  background: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+/* Form Elements for Edit Modal */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--surface-dark);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+.form-input::placeholder {
+  color: var(--text-muted);
+}
+
+.action-btn-primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.action-btn-primary:hover {
+  background: var(--primary-hover);
+}
+
 /* MODAL */
 
 .modal {
