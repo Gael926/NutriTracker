@@ -2,7 +2,8 @@
 const CONFIG = {
   endpoints: {
     inscription: 'https://n8n.srv957891.hstgr.cloud/webhook/inscription-client',
-    dictee: 'https://n8n.srv957891.hstgr.cloud/webhook/dictee-nutrition-v3'
+    dictee: 'https://n8n.srv957891.hstgr.cloud/webhook/dictee-nutrition-v3',
+    historique: 'https://n8n.srv957891.hstgr.cloud/webhook/historique'
   }
 };
 
@@ -402,16 +403,15 @@ async function sendToN8n(texte) {
 
     // Vérifier la structure de la réponse
     if (data.data && Array.isArray(data.data)) {
-      // Sauvegarder dans l'historique
-      saveToHistory(data.data);
-
-      // Rafraîchir l'affichage
-      loadHistory();
-      updateTotal();
-
       // Notification de succès
       const count = data.data.length;
       showNotification(`✅ ${count} aliment${count > 1 ? 's' : ''} enregistré${count > 1 ? 's' : ''} !`);
+
+      // Rafraîchir l'historique depuis le serveur (GSheet)
+      // Petit délai pour laisser n8n écrire dans le GSheet
+      setTimeout(() => {
+        loadHistory();
+      }, 500);
     } else {
       throw new Error('Format de réponse invalide');
     }
@@ -457,71 +457,142 @@ function saveToHistory(repas) {
   localStorage.setItem('historique', JSON.stringify(historique));
 }
 
-// Charge et affiche l'historique du jour
-function loadHistory() {
-  const historique = JSON.parse(localStorage.getItem('historique') || '[]');
+// Charge et affiche l'historique du jour depuis le serveur
+async function loadHistory() {
+  const user = JSON.parse(localStorage.getItem('user'));
   const today = getTodayISO();
-
-  // Filtrer uniquement les repas du jour
-  const repasAujourdhui = historique.filter(r => r.date === today);
-
-  // Afficher dans la liste
   const liste = document.getElementById('historique-liste');
-  if (!liste) return;
 
-  if (repasAujourdhui.length === 0) {
+  if (!liste || !user) return;
+
+  // Afficher un état de chargement
+  liste.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">⏳</div>
+      <p class="empty-text">Chargement...</p>
+    </div>
+  `;
+
+  try {
+    const url = `${CONFIG.endpoints.historique}?email=${encodeURIComponent(user.email)}&date=${today}`;
+    console.log('📡 Appel historique:', url);
+
+    const response = await fetch(url);
+    console.log('📥 Réponse status:', response.status);
+
+    if (!response.ok) {
+      throw new Error('Erreur serveur');
+    }
+
+    const data = await response.json();
+    console.log('📊 Données reçues:', data);
+
+    // Normaliser en tableau (n8n peut retourner un objet unique ou un tableau)
+    let items = [];
+    if (Array.isArray(data)) {
+      items = data;
+    } else if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+      // Si c'est un objet unique avec des données, le mettre dans un tableau
+      items = [data];
+    }
+
+    // Vérifier si on a des données
+    if (items.length === 0) {
+      liste.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📝</div>
+          <p class="empty-text">Aucune entrée aujourd'hui</p>
+          <p class="empty-subtext">Dictez un repas ou une activité sportive</p>
+        </div>
+      `;
+      updateTotalFromData([]);
+      return;
+    }
+
+    // Trier par numéro de ligne décroissant (plus récents en haut)
+    items.sort((a, b) => (b.row_number || 0) - (a.row_number || 0));
+
+    // Afficher l'historique
+    liste.innerHTML = items.map(r => {
+      // Mapping des colonnes GSheet (noms exacts)
+      const typeValue = r['Type (REPAS / SPORT)'] || r.Type || '';
+      const isSport = typeValue.toUpperCase() === 'SPORT';
+      const aliment = r['Aliment (texte)'] || r.Aliment || 'Élément';
+      const heure = r.Heure || '';
+      const quantite = r.Quantite || '';
+      const unite = r['Unite (g, portion, etc.)'] || '';
+      const kcal = parseInt(r.Kcal || 0, 10);
+      const momentText = r['Moment (Petit-déj / Déjeuner / Dîner / Sport)'] || r.Moment || (isSport ? 'Sport' : 'Repas');
+
+      // Icône selon le moment ou le type
+      let icon = '🍽️';
+      if (isSport) {
+        icon = '🏃‍♂️';
+      }
+
+      // Construire les détails avec l'heure
+      let detailsParts = [];
+      if (heure) detailsParts.push(heure);
+
+      // Pour le sport, convertir en minutes si l'unité est en heures
+      if (quantite && unite) {
+        if (isSport && unite.toLowerCase() === 'h') {
+          const minutes = Math.round(parseFloat(quantite) * 60);
+          detailsParts.push(`${minutes} min`);
+        } else {
+          detailsParts.push(`${quantite} ${unite}`);
+        }
+      }
+      const details = detailsParts.join(' · ');
+
+      const itemClass = isSport ? 'repas-item sport-item' : 'repas-item';
+
+      return `
+        <div class="${itemClass}">
+          <span class="icon">${icon}</span>
+          <div class="info">
+            <span class="nom">${aliment}</span>
+            <span class="details">${momentText}${details ? ' · ' + details : ''}</span>
+          </div>
+          <span class="kcal">${kcal} kcal</span>
+        </div>
+      `;
+    }).join('');
+
+    // Mettre à jour le total avec les données reçues
+    updateTotalFromData(items);
+
+  } catch (error) {
+    console.error('Erreur chargement historique:', error);
     liste.innerHTML = `
       <div class="empty-state">
-        <div class="empty-icon">📝</div>
-        <p class="empty-text">Aucun repas enregistré</p>
-        <p class="empty-subtext">Commencez par dicter votre premier repas</p>
+        <div class="empty-icon">⚠️</div>
+        <p class="empty-text">Erreur de connexion</p>
+        <p class="empty-subtext">Vérifiez votre connexion internet</p>
       </div>
     `;
-    return;
+    updateTotalFromData([]);
   }
-
-  // Trier par heure (plus récent en premier)
-  repasAujourdhui.sort((a, b) => b.heure.localeCompare(a.heure));
-
-  liste.innerHTML = repasAujourdhui.map(r => {
-    const isSport = r.type === 'sport';
-    const icon = isSport ? '🏃‍♂️' : getMealIcon(r.heure);
-    const moment = isSport ? 'Activité' : getMealMoment(r.heure);
-    const details = r.quantite && r.unite ? `${r.quantite}${r.unite} - ${r.heure}` : r.heure;
-    const itemClass = isSport ? 'repas-item sport-item' : 'repas-item';
-    const kcalDisplay = isSport ? `${r.kcal} kcal` : `${r.kcal} kcal`; // r.kcal est déjà négatif normalement
-
-    return `
-      <div class="${itemClass}">
-        <span class="icon">${icon}</span>
-        <div class="info">
-          <span class="nom">${r.aliment}</span>
-          <span class="details">${moment} · ${details}</span>
-        </div>
-        <span class="kcal">${kcalDisplay}</span>
-      </div>
-    `;
-  }).join('');
 }
 
-// Met à jour le total kcal et la barre de progression
-function updateTotal() {
+// Met à jour le total kcal à partir des données fournies
+function updateTotalFromData(data) {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const historique = JSON.parse(localStorage.getItem('historique') || '[]');
-  const today = getTodayISO();
 
-  // Filtrer et calculer
-  const repasAujourdhui = historique.filter(r => r.date === today);
-  const totalKcal = repasAujourdhui.reduce((sum, r) => {
-    if (r.type === 'sport') {
-      return sum - Math.abs(r.kcal || 0); // Toujours déduire le sport
+  const totalKcal = data.reduce((sum, r) => {
+    const typeValue = r['Type (REPAS / SPORT)'] || r.Type || '';
+    const isSport = typeValue.toUpperCase() === 'SPORT';
+    const kcal = parseInt(r.Kcal || 0, 10);
+
+    if (isSport) {
+      return sum - Math.abs(kcal); // Déduire les calories brûlées
     }
-    return sum + (r.kcal || 0);
+    return sum + kcal;
   }, 0);
+
   const objectif = user.objectif || 2500;
   const pourcentage = Math.round((totalKcal / objectif) * 100);
 
-  // Mettre à jour le DOM
   const totalElement = document.getElementById('total-kcal');
   const pourcentageElement = document.getElementById('pourcentage');
   const barreElement = document.getElementById('barre-progres');
@@ -535,10 +606,7 @@ function updateTotal() {
   }
 
   if (barreElement) {
-    // Limiter la largeur à 100%
-    barreElement.style.width = `${Math.min(pourcentage, 100)}%`;
-
-    // Couleur selon le pourcentage
+    barreElement.style.width = `${Math.min(Math.max(pourcentage, 0), 100)}%`;
     barreElement.classList.remove('bg-green-500', 'bg-yellow-500', 'bg-red-500');
 
     if (pourcentage < 80) {
@@ -549,6 +617,12 @@ function updateTotal() {
       barreElement.classList.add('bg-red-500');
     }
   }
+}
+
+// Fonction legacy pour compatibilité (appelle la nouvelle version)
+function updateTotal() {
+  // Cette fonction est maintenant appelée via updateTotalFromData
+  // On ne fait rien ici car loadHistory s'en charge
 }
 
 // INITIALISATION
