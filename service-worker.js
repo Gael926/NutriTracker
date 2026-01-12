@@ -3,7 +3,7 @@
    Cache pour mode offline
    ======================================== */
 
-const CACHE_NAME = 'nutritracker-v2';
+const CACHE_NAME = 'nutritracker-v3';
 
 // Fichiers à mettre en cache
 const urlsToCache = [
@@ -63,9 +63,10 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
 
-    // Ne pas intercepter les requêtes vers n8n (API)
+    // TOUJOURS utiliser le réseau pour les requêtes API n8n (jamais de cache)
     if (url.hostname.includes('n8n.srv957891.hstgr.cloud')) {
-        return; // Laisser passer la requête normalement
+        event.respondWith(fetch(event.request));
+        return;
     }
 
     // Stratégie: Cache First pour les ressources statiques
