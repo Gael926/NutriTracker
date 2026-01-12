@@ -360,8 +360,8 @@ function handleDictation() {
     setTimeout(() => {
       if (!btnDicter.classList.contains('processing')) {
         btnDicter.classList.remove('listening');
-        dicterText.textContent = 'Dicter un repas';
-        dicterStatus.textContent = 'Appuyez pour commencer';
+        dicterText.textContent = 'Enregistrer';
+        dicterStatus.textContent = 'Dictez un repas ou une activité';
       }
     }, 500);
   };
@@ -423,10 +423,10 @@ async function sendToN8n(texte) {
   } finally {
     // Remettre l'UI en état normal
     btnDicter.classList.remove('listening', 'processing');
-    dicterText.textContent = 'Dicter un repas';
+    dicterText.textContent = 'Enregistrer';
 
     setTimeout(() => {
-      dicterStatus.textContent = 'Appuyez pour commencer';
+      dicterStatus.textContent = 'Dictez un repas ou une activité';
     }, 2000);
   }
 }
@@ -446,10 +446,11 @@ function saveToHistory(repas) {
     historique.push({
       date: today,
       heure: time,
-      aliment: r.aliment,
+      aliment: r.aliment || r.activite, // Supporte les deux noms de champs
       quantite: r.quantite,
       unite: r.unite,
-      kcal: r.kcal || 0
+      kcal: r.kcal || 0,
+      type: r.type || (r.kcal < 0 || r.activite ? 'sport' : 'repas') // Détection auto si non spécifié
     });
   });
 
@@ -483,18 +484,21 @@ function loadHistory() {
   repasAujourdhui.sort((a, b) => b.heure.localeCompare(a.heure));
 
   liste.innerHTML = repasAujourdhui.map(r => {
-    const icon = getMealIcon(r.heure);
-    const moment = getMealMoment(r.heure);
+    const isSport = r.type === 'sport';
+    const icon = isSport ? '🏃‍♂️' : getMealIcon(r.heure);
+    const moment = isSport ? 'Activité' : getMealMoment(r.heure);
     const details = r.quantite && r.unite ? `${r.quantite}${r.unite} - ${r.heure}` : r.heure;
+    const itemClass = isSport ? 'repas-item sport-item' : 'repas-item';
+    const kcalDisplay = isSport ? `${r.kcal} kcal` : `${r.kcal} kcal`; // r.kcal est déjà négatif normalement
 
     return `
-      <div class="repas-item">
+      <div class="${itemClass}">
         <span class="icon">${icon}</span>
         <div class="info">
           <span class="nom">${r.aliment}</span>
           <span class="details">${moment} · ${details}</span>
         </div>
-        <span class="kcal">${r.kcal} kcal</span>
+        <span class="kcal">${kcalDisplay}</span>
       </div>
     `;
   }).join('');
@@ -508,7 +512,12 @@ function updateTotal() {
 
   // Filtrer et calculer
   const repasAujourdhui = historique.filter(r => r.date === today);
-  const totalKcal = repasAujourdhui.reduce((sum, r) => sum + (r.kcal || 0), 0);
+  const totalKcal = repasAujourdhui.reduce((sum, r) => {
+    if (r.type === 'sport') {
+      return sum - Math.abs(r.kcal || 0); // Toujours déduire le sport
+    }
+    return sum + (r.kcal || 0);
+  }, 0);
   const objectif = user.objectif || 2500;
   const pourcentage = Math.round((totalKcal / objectif) * 100);
 

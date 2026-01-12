@@ -547,6 +547,21 @@ body {
   flex-shrink: 0;
 }
 
+.repas-item.sport-item {
+  border-left: 4px solid #6366f1;
+  /* Indigo pour le sport */
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.repas-item.sport-item:hover {
+  border-color: #818cf8;
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.repas-item.sport-item .kcal {
+  color: #818cf8;
+}
+
 /* MODAL */
 
 .modal {
