@@ -67,6 +67,33 @@ function getMealMoment(heure) {
   return 'En-cas';
 }
 
+/**
+ * Valider le format du numéro de téléphone
+ * @param {string} phone - Numéro de téléphone à valider
+ * @returns {boolean} - True si valide, false sinon
+ */
+function validatePhoneNumber(phone) {
+  // Format international : commence par + suivi de 10 à 15 chiffres
+  const regex = /^\+[1-9]\d{9,14}$/;
+  return regex.test(phone);
+}
+
+/**
+ * Formater le numéro pour l'affichage
+ * @param {string} phone - Numéro de téléphone brut
+ * @returns {string} - Numéro formaté
+ */
+function formatPhoneDisplay(phone) {
+  if (!phone) return '-';
+
+  // Exemple : +33612345678 → +33 6 12 34 56 78
+  if (phone.startsWith('+33') && phone.length === 12) {
+    return phone.replace(/(\+33)(\d)(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5 $6');
+  }
+
+  return phone;
+}
+
 // GESTION DU LOGIN (index.html)
 
 // Initialise la page de login
@@ -89,11 +116,11 @@ async function handleLoginSubmit(event) {
   event.preventDefault();
 
   const email = document.getElementById('email').value.trim();
-  const telegram_chat_id = document.getElementById('telegram_chat_id').value.trim();
+  const phone_number = document.getElementById('phone_number').value.trim();
   const objectif = parseInt(document.getElementById('objectif').value, 10);
 
   // Validation
-  if (!validateLoginForm(email, telegram_chat_id, objectif)) {
+  if (!validateLoginForm(email, phone_number, objectif)) {
     return;
   }
 
@@ -107,7 +134,7 @@ async function handleLoginSubmit(event) {
   btnLoader.classList.remove('hidden');
 
   try {
-    await handleLogin(email, telegram_chat_id, objectif);
+    await handleLogin(email, phone_number, objectif);
   } catch (error) {
     // Réactiver le bouton en cas d'erreur
     btnSubmit.disabled = false;
@@ -117,9 +144,9 @@ async function handleLoginSubmit(event) {
 }
 
 /**
- * ⭐ VALIDATION POUR TELEGRAM
+ * ⭐ VALIDATION POUR SMS
  */
-function validateLoginForm(email, telegram_chat_id, objectif) {
+function validateLoginForm(email, phone_number, objectif) {
   let isValid = true;
 
   // Validation email
@@ -133,17 +160,17 @@ function validateLoginForm(email, telegram_chat_id, objectif) {
     emailError.textContent = '';
   }
 
-  // ⭐ VALIDATION TELEGRAM CHAT ID
-  const telegramError = document.getElementById('telegram-error');
+  // ⭐ VALIDATION NUMÉRO DE TÉLÉPHONE
+  const phoneError = document.getElementById('phone-error');
 
-  // Le Chat ID doit être un nombre (positif ou négatif pour les groupes)
-  if (!telegram_chat_id || !/^-?\d+$/.test(telegram_chat_id)) {
-    telegramError.textContent = 'Le Chat ID doit être un nombre valide';
-    telegramError.style.color = '#ef4444';
-    document.getElementById('telegram_chat_id').classList.add('animate-shake');
+  // Le numéro doit être au format international
+  if (!validatePhoneNumber(phone_number)) {
+    phoneError.textContent = 'Format invalide. Utilisez le format international (+33612345678)';
+    phoneError.style.color = '#ef4444';
+    document.getElementById('phone_number').classList.add('animate-shake');
     isValid = false;
   } else {
-    telegramError.textContent = '';
+    phoneError.textContent = '';
   }
 
   // Validation objectif
@@ -169,9 +196,9 @@ function validateLoginForm(email, telegram_chat_id, objectif) {
 /**
  * Gère l'inscription et la redirection
  */
-async function handleLogin(email, telegram_chat_id, objectif) {
+async function handleLogin(email, phone_number, objectif) {
   // 1. Sauvegarder dans localStorage
-  const user = { email, telegram_chat_id, objectif };
+  const user = { email, phone_number, objectif };
   localStorage.setItem('user', JSON.stringify(user));
 
   // 2. POST vers n8n
@@ -181,7 +208,7 @@ async function handleLogin(email, telegram_chat_id, objectif) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email,
-        telegram_chat_id,
+        phone_number,
         objectif
       })
     });
@@ -258,8 +285,8 @@ function initSettingsModal() {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
 
     document.getElementById('setting-email').textContent = user.email || '-';
-    // ⭐ Afficher le Telegram Chat ID
-    document.getElementById('setting-telegram').textContent = user.telegram_chat_id || '-';
+    // ⭐ Afficher le numéro de téléphone formaté
+    document.getElementById('setting-phone').textContent = formatPhoneDisplay(user.phone_number);
     document.getElementById('setting-objectif').textContent = user.objectif ? `${user.objectif} kcal` : '-';
 
     modal.classList.remove('hidden');
@@ -762,6 +789,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (isLoginPage) {
     initLoginPage();
+
+    // ⭐ Validation en temps réel du numéro de téléphone
+    const phoneInput = document.getElementById('phone_number');
+    if (phoneInput) {
+      phoneInput.addEventListener('input', (e) => {
+        const phone = e.target.value;
+        const phoneError = document.getElementById('phone-error');
+
+        if (phone.length > 0) {
+          if (validatePhoneNumber(phone)) {
+            e.target.style.borderColor = '#10b981';  // Vert si valide
+            phoneError.textContent = '';
+          } else {
+            e.target.style.borderColor = '#ef4444';  // Rouge si invalide
+            phoneError.textContent = 'Format attendu : +33612345678';
+            phoneError.style.color = '#ef4444';
+          }
+        } else {
+          e.target.style.borderColor = '';  // Reset
+          phoneError.textContent = '';
+        }
+      });
+    }
   } else if (isAppPage) {
     initAppPage();
   }

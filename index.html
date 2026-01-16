@@ -46,26 +46,26 @@
                     <span class="field-error" id="email-error"></span>
                 </div>
 
-                <!-- Telegram Chat ID -->
+                <!-- Numéro de téléphone -->
                 <div class="form-field">
-                    <label for="telegram_chat_id" class="field-label">
-                        Telegram Chat ID
+                    <label for="phone_number" class="field-label">
+                        Numéro de téléphone
                         <span class="text-xs text-blue-400 ml-2">📱</span>
                     </label>
-                    <input type="text" id="telegram_chat_id" name="telegram_chat_id" class="field-input"
-                        placeholder="123456789" required>
-                    <span class="field-error" id="telegram-error"></span>
+                    <input type="tel" id="phone_number" name="phone_number" class="field-input"
+                        placeholder="+33612345678" required pattern="^\+[0-9]{10,15}$">
+                    <span class="field-error" id="phone-error"></span>
                     <div class="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <p class="text-xs text-blue-800 font-medium mb-2">💡 Comment obtenir votre Chat ID :</p>
-                        <ol class="text-xs text-blue-700 space-y-1 ml-4 list-decimal">
-                            <li>Ouvrez Telegram</li>
-                            <li>Cherchez le bot : <code
-                                    class="bg-blue-100 px-1 py-0.5 rounded">@nutritracker_dinner_bot</code></li>
-                            <li>Cliquez sur "Start" ou envoyez <code
-                                    class="bg-blue-100 px-1 py-0.5 rounded">/start</code></li>
-                            <li>Le bot vous enverra votre Chat ID</li>
-                            <li>Copiez-le et collez-le ici</li>
-                        </ol>
+                        <p class="text-xs text-blue-800 font-medium mb-2">💡 Format international requis :</p>
+                        <ul class="text-xs text-blue-700 space-y-1 ml-4 list-disc">
+                            <li>Commencez par <code class="bg-blue-100 px-1 py-0.5 rounded">+</code> suivi de
+                                l'indicatif pays</li>
+                            <li>France : <code class="bg-blue-100 px-1 py-0.5 rounded">+33</code> puis votre numéro sans
+                                le 0</li>
+                            <li>Exemple : <code class="bg-blue-100 px-1 py-0.5 rounded">+33612345678</code></li>
+                            <li>Belgique : <code class="bg-blue-100 px-1 py-0.5 rounded">+32</code></li>
+                            <li>Suisse : <code class="bg-blue-100 px-1 py-0.5 rounded">+41</code></li>
+                        </ul>
                     </div>
                 </div>
 
