@@ -89,11 +89,11 @@ async function handleLoginSubmit(event) {
   event.preventDefault();
 
   const email = document.getElementById('email').value.trim();
-  const telephone = document.getElementById('telephone').value.trim();
+  const telegram_chat_id = document.getElementById('telegram_chat_id').value.trim();
   const objectif = parseInt(document.getElementById('objectif').value, 10);
 
   // Validation
-  if (!validateLoginForm(email, telephone, objectif)) {
+  if (!validateLoginForm(email, telegram_chat_id, objectif)) {
     return;
   }
 
@@ -101,26 +101,25 @@ async function handleLoginSubmit(event) {
   const btnSubmit = document.getElementById('btn-submit');
   const btnText = document.getElementById('btn-text');
   const btnLoader = document.getElementById('btn-loader');
-  const btnArrow = document.querySelector('.btn-arrow');
 
   btnSubmit.disabled = true;
   btnText.textContent = 'Connexion...';
-  btnArrow.classList.add('hidden');
   btnLoader.classList.remove('hidden');
 
   try {
-    await handleLogin(email, telephone, objectif);
+    await handleLogin(email, telegram_chat_id, objectif);
   } catch (error) {
     // Réactiver le bouton en cas d'erreur
     btnSubmit.disabled = false;
     btnText.textContent = 'Commencer';
-    btnArrow.classList.remove('hidden');
     btnLoader.classList.add('hidden');
   }
 }
 
-//Valide le formulaire de login
-function validateLoginForm(email, telephone, objectif) {
+/**
+ * ⭐ VALIDATION POUR TELEGRAM
+ */
+function validateLoginForm(email, telegram_chat_id, objectif) {
   let isValid = true;
 
   // Validation email
@@ -134,15 +133,17 @@ function validateLoginForm(email, telephone, objectif) {
     emailError.textContent = '';
   }
 
-  // Validation téléphone
-  const telError = document.getElementById('telephone-error');
-  const telRegex = /^[0-9]{10}$/;
-  if (!telRegex.test(telephone)) {
-    telError.textContent = 'Le numéro doit contenir 10 chiffres';
-    document.getElementById('telephone').classList.add('animate-shake');
+  // ⭐ VALIDATION TELEGRAM CHAT ID
+  const telegramError = document.getElementById('telegram-error');
+
+  // Le Chat ID doit être un nombre (positif ou négatif pour les groupes)
+  if (!telegram_chat_id || !/^-?\d+$/.test(telegram_chat_id)) {
+    telegramError.textContent = 'Le Chat ID doit être un nombre valide';
+    telegramError.style.color = '#ef4444';
+    document.getElementById('telegram_chat_id').classList.add('animate-shake');
     isValid = false;
   } else {
-    telError.textContent = '';
+    telegramError.textContent = '';
   }
 
   // Validation objectif
@@ -168,9 +169,9 @@ function validateLoginForm(email, telephone, objectif) {
 /**
  * Gère l'inscription et la redirection
  */
-async function handleLogin(email, telephone, objectif) {
+async function handleLogin(email, telegram_chat_id, objectif) {
   // 1. Sauvegarder dans localStorage
-  const user = { email, telephone, objectif };
+  const user = { email, telegram_chat_id, objectif };
   localStorage.setItem('user', JSON.stringify(user));
 
   // 2. POST vers n8n
@@ -178,7 +179,11 @@ async function handleLogin(email, telephone, objectif) {
     const response = await fetch(CONFIG.endpoints.inscription, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, telephone, objectif })
+      body: JSON.stringify({
+        email,
+        telegram_chat_id,
+        objectif
+      })
     });
 
     if (!response.ok) {
@@ -253,7 +258,8 @@ function initSettingsModal() {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
 
     document.getElementById('setting-email').textContent = user.email || '-';
-    document.getElementById('setting-telephone').textContent = user.telephone || '-';
+    // ⭐ Afficher le Telegram Chat ID
+    document.getElementById('setting-telegram').textContent = user.telegram_chat_id || '-';
     document.getElementById('setting-objectif').textContent = user.objectif ? `${user.objectif} kcal` : '-';
 
     modal.classList.remove('hidden');

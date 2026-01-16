@@ -32,7 +32,7 @@
         <div class="login-header">
             <div class="login-logo">🍽️</div>
             <h1 class="login-title">NutriTracker</h1>
-            <p class="login-subtitle">Suivez vos calories avec l'IA</p>
+            <p class="login-subtitle">Trackez vos calories en parlant !</p>
         </div>
 
         <!-- Card -->
@@ -46,12 +46,27 @@
                     <span class="field-error" id="email-error"></span>
                 </div>
 
-                <!-- Téléphone -->
+                <!-- Telegram Chat ID -->
                 <div class="form-field">
-                    <label for="telephone" class="field-label">Numéro de téléphone</label>
-                    <input type="tel" id="telephone" name="telephone" class="field-input" placeholder="06 12 34 56 78"
-                        pattern="[0-9]{10}" required autocomplete="tel">
-                    <span class="field-error" id="telephone-error"></span>
+                    <label for="telegram_chat_id" class="field-label">
+                        Telegram Chat ID
+                        <span class="text-xs text-blue-400 ml-2">📱</span>
+                    </label>
+                    <input type="text" id="telegram_chat_id" name="telegram_chat_id" class="field-input"
+                        placeholder="123456789" required>
+                    <span class="field-error" id="telegram-error"></span>
+                    <div class="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <p class="text-xs text-blue-800 font-medium mb-2">💡 Comment obtenir votre Chat ID :</p>
+                        <ol class="text-xs text-blue-700 space-y-1 ml-4 list-decimal">
+                            <li>Ouvrez Telegram</li>
+                            <li>Cherchez le bot : <code
+                                    class="bg-blue-100 px-1 py-0.5 rounded">@nutritracker_dinner_bot</code></li>
+                            <li>Cliquez sur "Start" ou envoyez <code
+                                    class="bg-blue-100 px-1 py-0.5 rounded">/start</code></li>
+                            <li>Le bot vous enverra votre Chat ID</li>
+                            <li>Copiez-le et collez-le ici</li>
+                        </ol>
+                    </div>
                 </div>
 
                 <!-- Objectif -->
