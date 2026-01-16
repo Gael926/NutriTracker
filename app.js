@@ -539,8 +539,22 @@ async function loadHistory() {
       throw new Error('Erreur serveur');
     }
 
-    const data = await response.json();
-    console.log('📊 Données reçues:', data);
+    // Récupérer le texte brut d'abord pour gérer les réponses vides
+    const responseText = await response.text();
+    console.log('📊 Réponse brute:', responseText);
+
+    // Si la réponse est vide, c'est juste qu'il n'y a pas de données
+    let data = null;
+    if (responseText && responseText.trim()) {
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.log('⚠️ Réponse non-JSON, considérée comme vide');
+        data = null;
+      }
+    }
+
+    console.log('📊 Données parsées:', data);
 
     // Normaliser en tableau (n8n peut retourner différents formats)
     let items = [];
