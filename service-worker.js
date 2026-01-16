@@ -3,7 +3,7 @@
    Cache pour mode offline
    ======================================== */
 
-const CACHE_NAME = 'nutritracker-v3';
+const CACHE_NAME = 'nutritracker-v4';
 
 // Fichiers à mettre en cache
 const urlsToCache = [
@@ -69,24 +69,50 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Stratégie: Cache First pour les ressources statiques
+    // Stratégie: Network First pour HTML, CSS, JS (pour le développement)
+    // Cela garantit que les dernières modifications sont toujours chargées
+    const isDevResource = url.pathname.endsWith('.html') ||
+        url.pathname.endsWith('.css') ||
+        url.pathname.endsWith('.js') ||
+        url.pathname === '/' ||
+        url.pathname === '';
+
+    if (isDevResource) {
+        // Network First: essayer le réseau d'abord, puis le cache
+        event.respondWith(
+            fetch(event.request)
+                .then((networkResponse) => {
+                    // Mettre à jour le cache avec la nouvelle version
+                    if (networkResponse && networkResponse.status === 200) {
+                        const responseToCache = networkResponse.clone();
+                        caches.open(CACHE_NAME).then((cache) => {
+                            cache.put(event.request, responseToCache);
+                        });
+                    }
+                    return networkResponse;
+                })
+                .catch(() => {
+                    // Si le réseau échoue, utiliser le cache
+                    return caches.match(event.request);
+                })
+        );
+        return;
+    }
+
+    // Cache First pour les autres ressources (images, fonts, etc.)
     event.respondWith(
         caches.match(event.request)
             .then((response) => {
-                // Retourner le cache si disponible
                 if (response) {
                     return response;
                 }
 
-                // Sinon faire la requête réseau
                 return fetch(event.request)
                     .then((networkResponse) => {
-                        // Ne pas mettre en cache les requêtes non-GET
                         if (event.request.method !== 'GET') {
                             return networkResponse;
                         }
 
-                        // Mettre en cache la nouvelle ressource
                         if (networkResponse && networkResponse.status === 200) {
                             const responseToCache = networkResponse.clone();
                             caches.open(CACHE_NAME)
@@ -98,8 +124,7 @@ self.addEventListener('fetch', (event) => {
                         return networkResponse;
                     })
                     .catch(() => {
-                        // En cas d'erreur réseau, retourner une page offline si HTML demandé
-                        if (event.request.headers.get('accept').includes('text/html')) {
+                        if (event.request.headers.get('accept')?.includes('text/html')) {
                             return caches.match('./index.html');
                         }
                     });

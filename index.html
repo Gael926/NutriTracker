@@ -93,8 +93,18 @@
                         </svg>
                     </span>
                 </button>
+
+                <!-- Zone d'erreur d'authentification -->
+                <div id="auth-error" class="hidden mt-4 p-4 bg-red-900/50 border border-red-500 rounded-lg text-center">
+                    <p class="text-red-300 font-medium" id="auth-error-message"></p>
+                </div>
             </form>
         </div>
+    </div>
+
+    <!-- Toast pour la page de login -->
+    <div id="toast" class="toast-notification hidden">
+        <span id="toast-message"></span>
     </div>
 
     <script src="app.js"></script>

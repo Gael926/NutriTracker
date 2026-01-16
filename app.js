@@ -87,12 +87,15 @@ function validatePhoneNumber(phone) {
 function formatPhoneDisplay(phone) {
   if (!phone) return '-';
 
+  // S'assurer que phone est une chaîne
+  const phoneStr = String(phone);
+
   // Exemple : +33612345678 → +33 6 12 34 56 78
-  if (phone.startsWith('+33') && phone.length === 12) {
-    return phone.replace(/(\+33)(\d)(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5 $6');
+  if (phoneStr.startsWith('+33') && phoneStr.length === 12) {
+    return phoneStr.replace(/(\+33)(\d)(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5 $6');
   }
 
-  return phone;
+  return phoneStr;
 }
 
 // GESTION DU LOGIN (index.html)
@@ -195,22 +198,17 @@ function validateLoginForm(email, phone_number, objectif) {
 }
 
 /**
- * Gère l'inscription et la redirection
+ * Gère la connexion et la vérification du client
  */
 async function handleLogin(email, phone_number, objectif) {
-  // 1. Sauvegarder dans localStorage
-  const user = { email, phone_number, objectif };
-  localStorage.setItem('user', JSON.stringify(user));
-
-  // 2. POST vers n8n
+  // 1. POST vers n8n pour vérifier si le client existe
   try {
     const response = await fetch(CONFIG.endpoints.inscription, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email,
-        phone_number,
-        objectif
+        phone_number
       })
     });
 
@@ -218,13 +216,54 @@ async function handleLogin(email, phone_number, objectif) {
       throw new Error('Erreur serveur');
     }
 
-    // 3. Rediriger vers app.html
-    window.location.href = 'app.html';
+    const data = await response.json();
+    console.log('📊 Réponse authentification:', data);
+
+    // 2. Vérifier si le client est autorisé
+    if (data.authorized) {
+      // ✅ Client autorisé - Sauvegarder et rediriger
+      const user = {
+        email: data.User_ID || email,
+        phone_number: data.Phone_Number || phone_number,
+        objectif: data.Objectif_Kcal || objectif
+      };
+      localStorage.setItem('user', JSON.stringify(user));
+
+      showNotification('✅ Connexion réussie !');
+
+      // Petit délai pour afficher la notification
+      setTimeout(() => {
+        window.location.href = 'app.html';
+      }, 500);
+    } else {
+      // ❌ Client non autorisé
+      throw new Error(data.message || 'Accès refusé');
+    }
 
   } catch (error) {
-    console.error('Erreur inscription:', error);
-    // On redirige quand même car les données sont en local
-    window.location.href = 'app.html';
+    console.error('Erreur connexion:', error);
+
+    const errorMessage = error.message || 'Email ou numéro de téléphone incorrect';
+
+    // Afficher dans la zone d'erreur dédiée
+    const authError = document.getElementById('auth-error');
+    const authErrorMessage = document.getElementById('auth-error-message');
+    if (authError && authErrorMessage) {
+      authErrorMessage.textContent = '🚫 ' + errorMessage;
+      authError.classList.remove('hidden');
+    }
+
+    // Aussi afficher en toast
+    showNotification('❌ ' + errorMessage);
+
+    // Réactiver le bouton
+    const btnSubmit = document.getElementById('btn-submit');
+    const btnText = document.getElementById('btn-text');
+    const btnLoader = document.getElementById('btn-loader');
+
+    if (btnSubmit) btnSubmit.disabled = false;
+    if (btnText) btnText.textContent = 'Commencer';
+    if (btnLoader) btnLoader.classList.add('hidden');
   }
 }
 
@@ -275,23 +314,33 @@ function initSettingsModal() {
   const btnSettings = document.getElementById('btn-settings');
   const modal = document.getElementById('modal-settings');
   const modalClose = document.getElementById('modal-close');
-  const modalOverlay = document.querySelector('.modal-overlay');
   const btnLogout = document.getElementById('btn-logout');
   const btnClearHistory = document.getElementById('btn-clear-history');
 
-  if (!modal) return;
+  console.log('🔧 initSettingsModal - modal:', modal, 'btnSettings:', btnSettings);
+
+  if (!modal) {
+    console.error('❌ Modal settings non trouvé');
+    return;
+  }
+
+  // Récupérer l'overlay spécifique à ce modal
+  const modalOverlay = modal.querySelector('.modal-overlay');
 
   // Ouvrir le modal
-  btnSettings?.addEventListener('click', () => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+  if (btnSettings) {
+    btnSettings.addEventListener('click', () => {
+      console.log('🔧 Bouton settings cliqué');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-    document.getElementById('setting-email').textContent = user.email || '-';
-    // ⭐ Afficher le numéro de téléphone formaté
-    document.getElementById('setting-phone').textContent = formatPhoneDisplay(user.phone_number);
-    document.getElementById('setting-objectif').textContent = user.objectif ? `${user.objectif} kcal` : '-';
+      document.getElementById('setting-email').textContent = user.email || '-';
+      // ⭐ Afficher le numéro de téléphone formaté
+      document.getElementById('setting-phone').textContent = formatPhoneDisplay(user.phone_number);
+      document.getElementById('setting-objectif').textContent = user.objectif ? `${user.objectif} kcal` : '-';
 
-    modal.classList.remove('hidden');
-  });
+      modal.classList.remove('hidden');
+    });
+  }
 
   // Fermer le modal
   modalClose?.addEventListener('click', () => {
