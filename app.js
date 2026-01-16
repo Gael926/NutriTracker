@@ -6,7 +6,7 @@ const CONFIG = {
     historique: 'https://n8n.srv957891.hstgr.cloud/webhook/historique',
     updateItem: 'https://n8n.srv957891.hstgr.cloud/webhook/update-item',
     deleteItem: 'https://n8n.srv957891.hstgr.cloud/webhook/delete-item',
-    clearHistory: 'https://n8n.srv957891.hstgr.cloud/webhook/6c8465b6-627e-493d-841b-f6995e6edc68'
+    clearHistory: 'https://n8n.srv957891.hstgr.cloud/webhook/clear_historique'
   }
 };
 
@@ -147,9 +147,7 @@ async function handleLoginSubmit(event) {
   }
 }
 
-/**
- * ⭐ VALIDATION POUR SMS
- */
+// VALIDATION POUR SMS
 function validateLoginForm(email, phone_number, objectif) {
   let isValid = true;
 
@@ -164,7 +162,7 @@ function validateLoginForm(email, phone_number, objectif) {
     emailError.textContent = '';
   }
 
-  // ⭐ VALIDATION NUMÉRO DE TÉLÉPHONE
+  //  VALIDATION NUMÉRO DE TÉLÉPHONE
   const phoneError = document.getElementById('phone-error');
 
   // Le numéro doit être au format international
