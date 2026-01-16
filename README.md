@@ -29,11 +29,38 @@ Puis ouvrez `http://localhost:8080` dans votre navigateur.
 1. Installez l'extension "Live Server" dans VS Code
 2. Clic droit sur `index.html` → "Open with Live Server"
 
-## Installation sur mobile
+## Installation PWA
 
-1. Ouvrez l'application dans Chrome (Android) ou Safari (iOS)
-2. Appuyez sur "Ajouter à l'écran d'accueil"
-3. L'application sera installée comme une app native
+### 📱 Sur iPhone / iPad (Safari)
+
+1. Ouvrez **Safari** et allez sur l'URL de l'application
+2. Appuyez sur l'icône **Partager** (carré avec flèche ⬆️)
+3. Faites défiler et appuyez sur **"Sur l'écran d'accueil"**
+4. Donnez un nom à l'app → Appuyez sur **Ajouter**
+
+> ⚠️ **Important** : Sur iOS, seul Safari permet d'installer des PWA. Chrome/Firefox ne fonctionnent pas pour l'installation.
+
+### 📱 Sur Android (Chrome)
+
+1. Ouvrez **Chrome** et allez sur l'URL de l'application
+2. Appuyez sur les **3 points** (⋮) en haut à droite
+3. Appuyez sur **"Installer l'application"** ou **"Ajouter à l'écran d'accueil"**
+4. Confirmez → **Installer**
+
+### 💻 Sur Desktop (Chrome / Edge)
+
+1. Ouvrez **Chrome** ou **Edge** et allez sur l'URL de l'application
+2. Cliquez sur l'icône **Installer** (⊕) dans la barre d'adresse (à droite)
+3. Ou cliquez sur les **3 points** → **Installer NutriTracker...**
+4. Confirmez → **Installer**
+
+### 💻 Sur macOS (Safari)
+
+1. Ouvrez **Safari** et allez sur l'URL de l'application
+2. Cliquez sur **Fichier** → **Ajouter au Dock**
+3. L'app apparaîtra dans votre Dock
+
+> 💡 Une fois installée, l'application se lance en plein écran sans barre d'URL, comme une app native !
 
 ## Structure du projet
 
@@ -58,13 +85,6 @@ nutritracker/
 - **Web Speech API** pour la dictée vocale
 - **localStorage** pour la persistance des données
 - **Service Worker** pour le mode offline
-
-## Endpoints API (n8n)
-
-| Endpoint | Méthode | Description |
-|----------|---------|-------------|
-| `/webhook/inscription-client` | POST | Inscription utilisateur |
-| `/webhook/dictee-nutrition-v3` | POST | Analyse nutritionnelle |
 
 ## Utilisation
 
