@@ -5,7 +5,8 @@ const CONFIG = {
     dictee: 'https://n8n.srv957891.hstgr.cloud/webhook/dictee-nutrition-v3',
     historique: 'https://n8n.srv957891.hstgr.cloud/webhook/historique',
     updateItem: 'https://n8n.srv957891.hstgr.cloud/webhook/update-item',
-    deleteItem: 'https://n8n.srv957891.hstgr.cloud/webhook/delete-item'
+    deleteItem: 'https://n8n.srv957891.hstgr.cloud/webhook/delete-item',
+    clearHistory: 'https://n8n.srv957891.hstgr.cloud/webhook/6c8465b6-627e-493d-841b-f6995e6edc68'
   }
 };
 
@@ -311,17 +312,36 @@ function initSettingsModal() {
   });
 
   // Effacer l'historique du jour
-  btnClearHistory?.addEventListener('click', () => {
+  btnClearHistory?.addEventListener('click', async () => {
     if (confirm('Voulez-vous effacer l\'historique du jour ?')) {
-      const historique = JSON.parse(localStorage.getItem('historique') || '[]');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
       const today = getTodayISO();
-      const historiqueFiltre = historique.filter(r => r.date !== today);
-      localStorage.setItem('historique', JSON.stringify(historiqueFiltre));
 
-      loadHistory();
-      updateTotal();
-      modal.classList.add('hidden');
-      showNotification('Historique effacé');
+      showNotification('⏳ Suppression en cours...');
+
+      try {
+        const response = await fetch(CONFIG.endpoints.clearHistory, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: user.email,
+            date: today
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Erreur serveur');
+        }
+
+        // Rafraîchir l'historique depuis le serveur
+        await loadHistory();
+        modal.classList.add('hidden');
+        showNotification('✅ Historique du jour effacé !');
+
+      } catch (error) {
+        console.error('Erreur suppression historique:', error);
+        showNotification('❌ Erreur lors de la suppression');
+      }
     }
   });
 }
@@ -522,14 +542,20 @@ async function loadHistory() {
     const data = await response.json();
     console.log('📊 Données reçues:', data);
 
-    // Normaliser en tableau (n8n peut retourner un objet unique ou un tableau)
+    // Normaliser en tableau (n8n peut retourner différents formats)
     let items = [];
+
     if (Array.isArray(data)) {
-      items = data;
+      // Filtrer les objets vides dans le tableau
+      items = data.filter(item => item && typeof item === 'object' && Object.keys(item).length > 0);
     } else if (data && typeof data === 'object' && Object.keys(data).length > 0) {
-      // Si c'est un objet unique avec des données, le mettre dans un tableau
-      items = [data];
+      // Vérifier que l'objet contient des données utiles (pas juste des métadonnées)
+      // Si l'objet a une clé "row_number" ou des colonnes du GSheet, c'est une vraie donnée
+      if (data.row_number || data['User_ID'] || data['Aliment (texte)'] || data.Kcal) {
+        items = [data];
+      }
     }
+    // Si data est null, undefined, chaîne vide, ou objet vide → items reste []
 
     // Vérifier si on a des données
     if (items.length === 0) {
