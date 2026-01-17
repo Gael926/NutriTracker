@@ -161,6 +161,8 @@
             </div>
             <div class="modal-panel-body">
                 <input type="hidden" id="edit-row-number">
+                <input type="hidden" id="edit-quantite-initiale">
+                <input type="hidden" id="edit-kcal-initial">
                 <div class="form-group">
                     <label for="edit-nom" class="form-label">Nom</label>
                     <input type="text" id="edit-nom" class="form-input" placeholder="Nom de l'aliment">
@@ -172,7 +174,7 @@
                     </div>
                     <div class="form-group">
                         <label for="edit-unite" class="form-label">Unité</label>
-                        <input type="text" id="edit-unite" class="form-input" placeholder="g, portion, h...">
+                        <input type="text" id="edit-unite" class="form-input form-input-readonly" readonly>
                     </div>
                 </div>
                 <div class="form-group">
@@ -180,8 +182,8 @@
                     <input type="number" id="edit-kcal" class="form-input" placeholder="0">
                 </div>
                 <div class="modal-actions">
-                    <button onclick="closeEditModal()" class="action-btn action-btn-secondary">
-                        Annuler
+                    <button onclick="deleteItemFromModal()" class="action-btn action-btn-danger">
+                        Supprimer
                     </button>
                     <button onclick="saveEditItem()" class="action-btn action-btn-primary">
                         Enregistrer

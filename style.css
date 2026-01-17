@@ -562,17 +562,12 @@ body {
   color: #818cf8;
 }
 
-/* Item Actions */
+/* Item Actions - Toujours visible pour mobile/tactile */
 .item-actions {
   display: flex;
   gap: 0.5rem;
   margin-left: 0.75rem;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.repas-item:hover .item-actions {
-  opacity: 1;
+  flex-shrink: 0;
 }
 
 .btn-edit,
@@ -651,13 +646,17 @@ body {
   color: var(--text-muted);
 }
 
+.form-input-readonly {
+  cursor: not-allowed;
+}
+
 .action-btn-primary {
-  background: var(--primary-color);
+  background: var(--primary);
   color: white;
 }
 
 .action-btn-primary:hover {
-  background: var(--primary-hover);
+  background: var(--primary-dark);
 }
 
 /* MODAL */
