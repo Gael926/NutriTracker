@@ -605,18 +605,32 @@ async function loadHistory() {
 
     // Normaliser en tableau (n8n peut retourner différents formats)
     let items = [];
+    let stats = null;
 
-    if (Array.isArray(data)) {
-      // Filtrer les objets vides dans le tableau
-      items = data.filter(item => item && typeof item === 'object' && Object.keys(item).length > 0);
-    } else if (data && typeof data === 'object' && Object.keys(data).length > 0) {
-      // Vérifier que l'objet contient des données utiles (pas juste des métadonnées)
-      // Si l'objet a une clé "row_number" ou des colonnes du GSheet, c'est une vraie donnée
+    // n8n retourne souvent un tableau avec un seul objet: [{ items, stats }]
+    // On doit d'abord extraire cet objet
+    let responseData = data;
+    if (Array.isArray(data) && data.length > 0 && data[0].items) {
+      responseData = data[0];
+      console.log('📊 Format tableau[objet] détecté, extraction du premier élément');
+    }
+
+    // Nouveau format avec items et stats
+    if (responseData && responseData.items && Array.isArray(responseData.items)) {
+      items = responseData.items.filter(item => item && typeof item === 'object' && Object.keys(item).length > 0);
+      stats = responseData.stats || null;
+      console.log('📊 Nouveau format API - items:', items.length, 'stats:', stats ? 'présent' : 'absent');
+    }
+    // Ancien format - tableau direct d'items
+    else if (Array.isArray(data)) {
+      items = data.filter(item => item && typeof item === 'object' && Object.keys(item).length > 0 && !item.items);
+    }
+    // Ancien format - objet unique
+    else if (data && typeof data === 'object' && Object.keys(data).length > 0) {
       if (data.row_number || data['User_ID'] || data['Aliment (texte)'] || data.Kcal) {
         items = [data];
       }
     }
-    // Si data est null, undefined, chaîne vide, ou objet vide → items reste []
 
     // Vérifier si on a des données
     if (items.length === 0) {
@@ -627,7 +641,7 @@ async function loadHistory() {
           <p class="empty-subtext">Dictez un repas ou une activité sportive</p>
         </div>
       `;
-      updateTotalFromData([]);
+      updateTotalFromData([], stats);
       return;
     }
 
@@ -688,8 +702,8 @@ async function loadHistory() {
       `;
     }).join('');
 
-    // Mettre à jour le total avec les données reçues
-    updateTotalFromData(items);
+    // Mettre à jour le total avec les données reçues et les stats
+    updateTotalFromData(items, stats);
 
   } catch (error) {
     console.error('Erreur chargement historique:', error);
@@ -700,21 +714,29 @@ async function loadHistory() {
         <p class="empty-subtext">Vérifiez votre connexion internet</p>
       </div>
     `;
-    updateTotalFromData([]);
+    updateTotalFromData([], null);
   }
 }
 
-// Met à jour le total kcal à partir des données fournies
-function updateTotalFromData(data) {
+// Met à jour les stats nutritionnelles à partir des données fournies
+function updateTotalFromData(data, stats = null) {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
+  // Si on a des stats de l'API, les utiliser directement
+  if (stats && stats.consomme && stats.objectifs) {
+    console.log('📊 Mise à jour avec stats API:', stats);
+    updateNutritionDisplay(stats);
+    return;
+  }
+
+  // Fallback: calculer les calories à partir des items (ancien comportement)
   const totalKcal = data.reduce((sum, r) => {
     const typeValue = r['Type (REPAS / SPORT)'] || r.Type || '';
     const isSport = typeValue.toUpperCase() === 'SPORT';
     const kcal = parseInt(r.Kcal || 0, 10);
 
     if (isSport) {
-      return sum - Math.abs(kcal); // Déduire les calories brûlées
+      return sum - Math.abs(kcal);
     }
     return sum + kcal;
   }, 0);
@@ -722,29 +744,78 @@ function updateTotalFromData(data) {
   const objectif = user.objectif || 2500;
   const pourcentage = Math.round((totalKcal / objectif) * 100);
 
+  // Construire un objet stats simulé pour le fallback
+  const fallbackStats = {
+    objectifs: { kcal: objectif, proteines: 0, glucides: 0, lipides: 0 },
+    consomme: { kcal: totalKcal, proteines: 0, glucides: 0, lipides: 0 },
+    pourcentages: { kcal: pourcentage, proteines: 0, glucides: 0, lipides: 0 },
+    ratios: { proteines: 0, glucides: 0, lipides: 0 }
+  };
+
+  updateNutritionDisplay(fallbackStats);
+}
+
+// Met à jour l'affichage de toutes les barres de nutrition
+function updateNutritionDisplay(stats) {
+  const { objectifs, consomme, pourcentages, ratios } = stats;
+
+  // === CALORIES ===
   const totalElement = document.getElementById('total-kcal');
   const pourcentageElement = document.getElementById('pourcentage');
   const barreElement = document.getElementById('barre-progres');
 
   if (totalElement) {
-    totalElement.textContent = `${totalKcal} / ${objectif}`;
+    totalElement.textContent = `${consomme.kcal} / ${objectifs.kcal} kcal`;
   }
 
   if (pourcentageElement) {
-    pourcentageElement.textContent = `${pourcentage}%`;
+    pourcentageElement.textContent = `${pourcentages.kcal}%`;
   }
 
   if (barreElement) {
-    barreElement.style.width = `${Math.min(Math.max(pourcentage, 0), 100)}%`;
+    barreElement.style.width = `${Math.min(Math.max(pourcentages.kcal, 0), 100)}%`;
     barreElement.classList.remove('bg-green-500', 'bg-yellow-500', 'bg-red-500');
 
-    if (pourcentage < 80) {
+    if (pourcentages.kcal < 80) {
       barreElement.classList.add('bg-green-500');
-    } else if (pourcentage <= 100) {
+    } else if (pourcentages.kcal <= 100) {
       barreElement.classList.add('bg-yellow-500');
     } else {
       barreElement.classList.add('bg-red-500');
     }
+  }
+
+  // === PROTÉINES ===
+  updateMacroBar('proteines', consomme.proteines, objectifs.proteines, pourcentages.proteines, ratios.proteines);
+
+  // === GLUCIDES ===
+  updateMacroBar('glucides', consomme.glucides, objectifs.glucides, pourcentages.glucides, ratios.glucides);
+
+  // === LIPIDES ===
+  updateMacroBar('lipides', consomme.lipides, objectifs.lipides, pourcentages.lipides, ratios.lipides);
+}
+
+// Met à jour une barre de macro spécifique
+function updateMacroBar(macro, consomme, objectif, pourcentage, ratio) {
+  const totalEl = document.getElementById(`total-${macro}`);
+  const barreEl = document.getElementById(`barre-${macro}`);
+  const pourcentageEl = document.getElementById(`pourcentage-${macro}`);
+  const ratioEl = document.getElementById(`ratio-${macro}`);
+
+  if (totalEl) {
+    totalEl.textContent = `${consomme || 0}g / ${objectif || 0}g`;
+  }
+
+  if (barreEl) {
+    barreEl.style.width = `${Math.min(Math.max(pourcentage || 0, 0), 100)}%`;
+  }
+
+  if (pourcentageEl) {
+    pourcentageEl.textContent = `${pourcentage || 0}%`;
+  }
+
+  if (ratioEl) {
+    ratioEl.textContent = ratio ? `(${ratio}%)` : '';
   }
 }
 
