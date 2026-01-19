@@ -99,6 +99,62 @@ function formatPhoneDisplay(phone) {
 }
 
 // GESTION DU LOGIN (index.html)
+// ========================================
+// GESTION FORMULAIRE INTELLIGENT (2 ou 4 champs)
+// ========================================
+
+/**
+ * Vérifie si un email a déjà complété son profil
+ */
+function isReturningUser(email) {
+  try {
+    const completedProfiles = JSON.parse(localStorage.getItem('completed_profiles') || '[]');
+    return completedProfiles.includes(email.toLowerCase());
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * Marque un email comme ayant complété son profil
+ */
+function markProfileCompleted(email) {
+  try {
+    const completedProfiles = JSON.parse(localStorage.getItem('completed_profiles') || '[]');
+    if (!completedProfiles.includes(email.toLowerCase())) {
+      completedProfiles.push(email.toLowerCase());
+      localStorage.setItem('completed_profiles', JSON.stringify(completedProfiles));
+    }
+  } catch (error) {
+    console.error('Erreur sauvegarde localStorage:', error);
+  }
+}
+
+/**
+ * Adapte le formulaire selon si l'utilisateur revient ou non
+ */
+function adaptFormForUser(email) {
+  const objectifField = document.getElementById('objectif');
+  const objectifFieldGroup = objectifField?.closest('.form-field');
+  const poidsField = document.getElementById('poids');
+  const poidsFieldGroup = poidsField?.closest('.form-field');
+
+  if (isReturningUser(email)) {
+    // RECONNEXION : Masquer objectif et poids
+    console.log('🔄 Utilisateur connu - Formulaire simplifié');
+    if (objectifFieldGroup) objectifFieldGroup.style.display = 'none';
+    if (poidsFieldGroup) poidsFieldGroup.style.display = 'none';
+    if (objectifField) objectifField.removeAttribute('required');
+    if (poidsField) poidsField.removeAttribute('required');
+  } else {
+    // FIRST LOGIN : Afficher tous les champs
+    console.log('✨ Nouvel utilisateur - Formulaire complet');
+    if (objectifFieldGroup) objectifFieldGroup.style.display = 'block';
+    if (poidsFieldGroup) poidsFieldGroup.style.display = 'block';
+    if (objectifField) objectifField.setAttribute('required', 'required');
+    if (poidsField) poidsField.setAttribute('required', 'required');
+  }
+}
 
 // Initialise la page de login
 function initLoginPage() {
@@ -112,7 +168,49 @@ function initLoginPage() {
     return;
   }
 
+  // Ecouter les changements d'email pour adapter le formulaire
+  const emailInput = document.getElementById('email');
+  if (emailInput) {
+    emailInput.addEventListener('blur', (e) => {
+      const email = e.target.value.trim();
+      if (email) {
+        adaptFormForUser(email);
+      }
+    });
+
+    // Adapter aussi lors du input (temps réel)
+    emailInput.addEventListener('input', (e) => {
+      const email = e.target.value.trim();
+      if (email && email.includes('@')) {
+        adaptFormForUser(email);
+      }
+    });
+  }
+
   form.addEventListener('submit', handleLoginSubmit);
+
+  // Validation en temps réel du téléphone
+  const phoneInput = document.getElementById('phone_number');
+  if (phoneInput) {
+    phoneInput.addEventListener('input', (e) => {
+      const phone = e.target.value;
+      const phoneError = document.getElementById('phone-error');
+
+      if (phone.length > 0) {
+        if (validatePhoneNumber(phone)) {
+          e.target.style.borderColor = '#10b981';
+          phoneError.textContent = '';
+        } else {
+          e.target.style.borderColor = '#ef4444';
+          phoneError.textContent = 'Format attendu : +33612345678';
+          phoneError.style.color = '#ef4444';
+        }
+      } else {
+        e.target.style.borderColor = '';
+        phoneError.textContent = '';
+      }
+    });
+  }
 }
 
 // Gère la soumission du formulaire de login
@@ -121,10 +219,16 @@ async function handleLoginSubmit(event) {
 
   const email = document.getElementById('email').value.trim();
   const phone_number = document.getElementById('phone_number').value.trim();
-  const objectif = parseInt(document.getElementById('objectif').value, 10);
 
-  // Validation
-  if (!validateLoginForm(email, phone_number, objectif)) {
+  // Récupérer objectif et poids (peuvent être vides pour reconnexion)
+  const objectifInput = document.getElementById('objectif');
+  const poidsInput = document.getElementById('poids');
+
+  const objectif = objectifInput?.value ? parseInt(objectifInput.value, 10) : null;
+  const poids = poidsInput?.value ? parseFloat(poidsInput.value) : null;
+
+  // Validation adaptée
+  if (!validateLoginForm(email, phone_number, objectif, poids)) {
     return;
   }
 
@@ -138,9 +242,8 @@ async function handleLoginSubmit(event) {
   btnLoader.classList.remove('hidden');
 
   try {
-    await handleLogin(email, phone_number, objectif);
+    await handleLogin(email, phone_number, objectif, poids);
   } catch (error) {
-    // Réactiver le bouton en cas d'erreur
     btnSubmit.disabled = false;
     btnText.textContent = 'Commencer';
     btnLoader.classList.add('hidden');
@@ -148,7 +251,7 @@ async function handleLoginSubmit(event) {
 }
 
 // VALIDATION POUR SMS
-function validateLoginForm(email, phone_number, objectif) {
+function validateLoginForm(email, phone_number, objectif, poids) {
   let isValid = true;
 
   // Validation email
@@ -162,10 +265,8 @@ function validateLoginForm(email, phone_number, objectif) {
     emailError.textContent = '';
   }
 
-  //  VALIDATION NUMÉRO DE TÉLÉPHONE
+  // Validation téléphone
   const phoneError = document.getElementById('phone-error');
-
-  // Le numéro doit être au format international
   if (!validatePhoneNumber(phone_number)) {
     phoneError.textContent = 'Format invalide. Utilisez le format international (+33612345678)';
     phoneError.style.color = '#ef4444';
@@ -175,17 +276,33 @@ function validateLoginForm(email, phone_number, objectif) {
     phoneError.textContent = '';
   }
 
-  // Validation objectif
+  // Validation objectif (seulement si champ visible)
+  const objectifField = document.getElementById('objectif');
   const objError = document.getElementById('objectif-error');
-  if (objectif < 1000 || objectif > 5000) {
-    objError.textContent = 'L\'objectif doit être entre 1000 et 5000 kcal';
-    document.getElementById('objectif').classList.add('animate-shake');
-    isValid = false;
-  } else {
-    objError.textContent = '';
+  if (objectifField && objectifField.offsetParent !== null) { // Champ visible
+    if (!objectif || objectif < 1000 || objectif > 5000) {
+      objError.textContent = 'L\'objectif doit être entre 1000 et 5000 kcal';
+      objectifField.classList.add('animate-shake');
+      isValid = false;
+    } else {
+      objError.textContent = '';
+    }
   }
 
-  // Retirer l'animation après un délai
+  // Validation poids (seulement si champ visible)
+  const poidsField = document.getElementById('poids');
+  const poidsError = document.getElementById('poids-error');
+  if (poidsField && poidsField.offsetParent !== null) { // Champ visible
+    if (!poids || poids < 30 || poids > 300) {
+      poidsError.textContent = 'Le poids doit être entre 30 et 300 kg';
+      poidsField.classList.add('animate-shake');
+      isValid = false;
+    } else {
+      poidsError.textContent = '';
+    }
+  }
+
+  // Retirer l'animation
   setTimeout(() => {
     document.querySelectorAll('.animate-shake').forEach(el => {
       el.classList.remove('animate-shake');
@@ -198,16 +315,22 @@ function validateLoginForm(email, phone_number, objectif) {
 /**
  * Gère la connexion et la vérification du client
  */
-async function handleLogin(email, phone_number, objectif) {
-  // 1. POST vers n8n pour vérifier si le client existe
+async function handleLogin(email, phone_number, objectif, poids) {
   try {
+    // 🆕 Construire le body selon les données disponibles
+    const body = {
+      email,
+      phone_number
+    };
+
+    // Ajouter objectif et poids seulement s'ils sont fournis
+    if (objectif !== null) body.objectif = objectif;
+    if (poids !== null) body.poids = poids;
+
     const response = await fetch(CONFIG.endpoints.inscription, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email,
-        phone_number
-      })
+      body: JSON.stringify(body)
     });
 
     if (!response.ok) {
@@ -217,33 +340,34 @@ async function handleLogin(email, phone_number, objectif) {
     const data = await response.json();
     console.log('📊 Réponse authentification:', data);
 
-    // 2. Vérifier si le client est autorisé
     if (data.authorized) {
-      // ✅ Client autorisé - Sauvegarder et rediriger
       const user = {
         email: data.User_ID || email,
         phone_number: data.Phone_Number || phone_number,
-        objectif: data.Objectif_Kcal || objectif
+        objectif: data.Objectif_Kcal || objectif,
+        poids: data.Poids || poids
       };
       localStorage.setItem('user', JSON.stringify(user));
 
-      showNotification('✅ Connexion réussie !');
+      if (data.first_login) {
+        showNotification('✨ Bienvenue ! Votre profil a été créé.');
+      } else {
+        showNotification('✅ Connexion réussie !');
+        // ✅ Marquer comme complété SEULEMENT si ce n'est PAS un first login
+        markProfileCompleted(email);
+      }
 
-      // Petit délai pour afficher la notification
       setTimeout(() => {
         window.location.href = 'app.html';
       }, 500);
     } else {
-      // ❌ Client non autorisé
       throw new Error(data.message || 'Accès refusé');
     }
 
   } catch (error) {
     console.error('Erreur connexion:', error);
-
     const errorMessage = error.message || 'Email ou numéro de téléphone incorrect';
 
-    // Afficher dans la zone d'erreur dédiée
     const authError = document.getElementById('auth-error');
     const authErrorMessage = document.getElementById('auth-error-message');
     if (authError && authErrorMessage) {
@@ -251,17 +375,7 @@ async function handleLogin(email, phone_number, objectif) {
       authError.classList.remove('hidden');
     }
 
-    // Aussi afficher en toast
-    showNotification('❌ ' + errorMessage);
-
-    // Réactiver le bouton
-    const btnSubmit = document.getElementById('btn-submit');
-    const btnText = document.getElementById('btn-text');
-    const btnLoader = document.getElementById('btn-loader');
-
-    if (btnSubmit) btnSubmit.disabled = false;
-    if (btnText) btnText.textContent = 'Commencer';
-    if (btnLoader) btnLoader.classList.add('hidden');
+    throw error;
   }
 }
 
@@ -288,7 +402,6 @@ function initAppPage() {
 
   // Charger et afficher les données
   loadHistory();
-  updateTotal();
 
   // Attacher les événements
   btnDicter.addEventListener('click', handleDictation);
@@ -534,30 +647,6 @@ async function sendToN8n(texte) {
 }
 
 // GESTION DE L'HISTORIQUE
-
-// Sauvegarde les repas dans l'historique local
-function saveToHistory(repas) {
-  // Récupérer l'historique existant
-  let historique = JSON.parse(localStorage.getItem('historique') || '[]');
-
-  // Ajouter la date/heure à chaque repas
-  const today = getTodayISO();
-  const time = getCurrentTime();
-
-  repas.forEach(r => {
-    historique.push({
-      date: today,
-      heure: time,
-      aliment: r.aliment || r.activite, // Supporte les deux noms de champs
-      quantite: r.quantite,
-      unite: r.unite,
-      kcal: r.kcal || 0,
-      type: r.type || (r.kcal < 0 || r.activite ? 'sport' : 'repas') // Détection auto si non spécifié
-    });
-  });
-
-  localStorage.setItem('historique', JSON.stringify(historique));
-}
 
 // Charge et affiche l'historique du jour depuis le serveur
 async function loadHistory() {
@@ -819,12 +908,6 @@ function updateMacroBar(macro, consomme, objectif, pourcentage, ratio) {
   }
 }
 
-// Fonction legacy pour compatibilité (appelle la nouvelle version)
-function updateTotal() {
-  // Cette fonction est maintenant appelée via updateTotalFromData
-  // On ne fait rien ici car loadHistory s'en charge
-}
-
 // GESTION DE L'ÉDITION ET SUPPRESSION
 
 // Ouvre la modale d'édition avec les données de l'élément
@@ -973,29 +1056,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (isLoginPage) {
     initLoginPage();
-
-    // ⭐ Validation en temps réel du numéro de téléphone
-    const phoneInput = document.getElementById('phone_number');
-    if (phoneInput) {
-      phoneInput.addEventListener('input', (e) => {
-        const phone = e.target.value;
-        const phoneError = document.getElementById('phone-error');
-
-        if (phone.length > 0) {
-          if (validatePhoneNumber(phone)) {
-            e.target.style.borderColor = '#10b981';  // Vert si valide
-            phoneError.textContent = '';
-          } else {
-            e.target.style.borderColor = '#ef4444';  // Rouge si invalide
-            phoneError.textContent = 'Format attendu : +33612345678';
-            phoneError.style.color = '#ef4444';
-          }
-        } else {
-          e.target.style.borderColor = '';  // Reset
-          phoneError.textContent = '';
-        }
-      });
-    }
   } else if (isAppPage) {
     initAppPage();
   }
