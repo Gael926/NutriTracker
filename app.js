@@ -100,55 +100,65 @@ function formatPhoneDisplay(phone) {
 
 // GESTION DU LOGIN (index.html)
 // ========================================
-// GESTION FORMULAIRE INTELLIGENT (2 ou 4 champs)
+// VÉRIFICATION DIRECTE VIA API (SANS LOCALSTORAGE)
 // ========================================
 
 /**
- * Vérifie si un email a déjà complété son profil
+ * Vérifie le profil d'un utilisateur directement via l'API n8n
+ * Utilise le mode check_only qui retourne juste le statut du profil
  */
-function isReturningUser(email) {
+async function checkUserProfile(email) {
   try {
-    const completedProfiles = JSON.parse(localStorage.getItem('completed_profiles') || '[]');
-    return completedProfiles.includes(email.toLowerCase());
-  } catch (error) {
-    return false;
-  }
-}
+    const response = await fetch(CONFIG.endpoints.inscription, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email,
+        phone_number: '', // Vide en mode check_only
+        check_only: true   // 🔑 MODE VÉRIFICATION UNIQUEMENT
+      })
+    });
 
-/**
- * Marque un email comme ayant complété son profil
- */
-function markProfileCompleted(email) {
-  try {
-    const completedProfiles = JSON.parse(localStorage.getItem('completed_profiles') || '[]');
-    if (!completedProfiles.includes(email.toLowerCase())) {
-      completedProfiles.push(email.toLowerCase());
-      localStorage.setItem('completed_profiles', JSON.stringify(completedProfiles));
+    if (!response.ok) {
+      return { exists: false, hasCompleteProfile: false };
     }
+
+    const data = await response.json();
+
+    // L'API retourne has_complete_profile directement
+    return {
+      exists: data.email_found || false,
+      hasCompleteProfile: data.has_complete_profile || false
+    };
   } catch (error) {
-    console.error('Erreur sauvegarde localStorage:', error);
+    console.log('Erreur vérification profil:', error);
+    return { exists: false, hasCompleteProfile: false };
   }
 }
 
 /**
- * Adapte le formulaire selon si l'utilisateur revient ou non
+ * Adapte le formulaire selon le profil utilisateur
+ * Interroge directement l'API n8n au lieu d'utiliser localStorage
  */
-function adaptFormForUser(email) {
+async function adaptFormForUser(email) {
   const objectifField = document.getElementById('objectif');
   const objectifFieldGroup = objectifField?.closest('.form-field');
   const poidsField = document.getElementById('poids');
   const poidsFieldGroup = poidsField?.closest('.form-field');
 
-  if (isReturningUser(email)) {
-    // RECONNEXION : Masquer objectif et poids
-    console.log('🔄 Utilisateur connu - Formulaire simplifié');
+  // Vérifier le profil via l'API
+  const profile = await checkUserProfile(email);
+
+  if (profile.exists && profile.hasCompleteProfile) {
+    // PROFIL COMPLET dans le GSheet : Masquer objectif et poids
+    console.log('🔄 Profil complet détecté - Formulaire simplifié');
     if (objectifFieldGroup) objectifFieldGroup.style.display = 'none';
     if (poidsFieldGroup) poidsFieldGroup.style.display = 'none';
     if (objectifField) objectifField.removeAttribute('required');
     if (poidsField) poidsField.removeAttribute('required');
   } else {
-    // FIRST LOGIN : Afficher tous les champs
-    console.log('✨ Nouvel utilisateur - Formulaire complet');
+    // PROFIL INCOMPLET ou NOUVEAU : Afficher tous les champs
+    console.log('✨ Profil incomplet ou nouvel utilisateur - Formulaire complet');
     if (objectifFieldGroup) objectifFieldGroup.style.display = 'block';
     if (poidsFieldGroup) poidsFieldGroup.style.display = 'block';
     if (objectifField) objectifField.setAttribute('required', 'required');
@@ -168,20 +178,31 @@ function initLoginPage() {
     return;
   }
 
-  // Ecouter les changements d'email pour adapter le formulaire
+  // Écouter les changements d'email pour adapter le formulaire
   const emailInput = document.getElementById('email');
   if (emailInput) {
-    emailInput.addEventListener('blur', (e) => {
+    // Debounce pour éviter trop d'appels API
+    let emailCheckTimeout;
+
+    emailInput.addEventListener('input', (e) => {
       const email = e.target.value.trim();
-      if (email) {
-        adaptFormForUser(email);
+
+      // Vider le timeout précédent
+      clearTimeout(emailCheckTimeout);
+
+      // Si l'email semble valide, vérifier après 800ms
+      if (email && email.includes('@') && email.includes('.')) {
+        emailCheckTimeout = setTimeout(() => {
+          adaptFormForUser(email);
+        }, 800);
       }
     });
 
-    // Adapter aussi lors du input (temps réel)
-    emailInput.addEventListener('input', (e) => {
+    // Vérifier aussi au blur (quand on quitte le champ)
+    emailInput.addEventListener('blur', (e) => {
       const email = e.target.value.trim();
       if (email && email.includes('@')) {
+        clearTimeout(emailCheckTimeout);
         adaptFormForUser(email);
       }
     });
@@ -353,8 +374,6 @@ async function handleLogin(email, phone_number, objectif, poids) {
         showNotification('✨ Bienvenue ! Votre profil a été créé.');
       } else {
         showNotification('✅ Connexion réussie !');
-        // ✅ Marquer comme complété SEULEMENT si ce n'est PAS un first login
-        markProfileCompleted(email);
       }
 
       setTimeout(() => {
