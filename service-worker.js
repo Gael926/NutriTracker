@@ -3,7 +3,7 @@
    Cache pour mode offline
    ======================================== */
 
-const CACHE_NAME = 'nutritracker-v4';
+const CACHE_NAME = 'nutritracker-v5';
 
 // Fichiers à mettre en cache
 const urlsToCache = [
@@ -12,10 +12,21 @@ const urlsToCache = [
     './app.html',
     './style.css',
     './style.css?v=2',
-    './app.js',
     './manifest.json',
     './icons/icon-192.png',
-    './icons/icon-512.png'
+    './icons/icon-512.png',
+    // Modules JS
+    './js/config.js',
+    './js/utils.js',
+    './js/auth.js',
+    './js/nutrition.js',
+    './js/history.js',
+    './js/edit.js',
+    './js/api.js',
+    './js/dictation.js',
+    './js/settings.js',
+    './js/app-page.js',
+    './js/main.js'
 ];
 
 // Ressources externes à mettre en cache

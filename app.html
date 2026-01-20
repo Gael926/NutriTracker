@@ -92,7 +92,7 @@
             <!-- Glucides -->
             <div class="macro-section macro-glucides">
                 <div class="macro-header">
-                    <span class="macro-label">🍞 Glucides <span id="ratio-glucides"
+                    <span class="macro-label">🍚 Glucides <span id="ratio-glucides"
                             class="macro-ratio">(45%)</span></span>
                     <span id="total-glucides" class="macro-value">0 / 0g</span>
                 </div>
@@ -163,6 +163,8 @@
                 </button>
             </div>
             <div class="modal-panel-body">
+
+                <!-- Informations non modifiables -->
                 <div class="settings-group">
                     <div class="setting-row">
                         <span class="setting-label">Email</span>
@@ -172,11 +174,45 @@
                         <span class="setting-label">Numéro de téléphone</span>
                         <span id="setting-phone" class="setting-value">-</span>
                     </div>
-                    <div class="setting-row">
-                        <span class="setting-label">Objectif quotidien</span>
-                        <span id="setting-objectif" class="setting-value">-</span>
-                    </div>
                 </div>
+
+                <!-- 🆕 Paramètres modifiables -->
+                <div class="settings-group-editable">
+                    <h4 class="settings-subtitle">Paramètres modifiables</h4>
+
+                    <!-- Objectif calorique -->
+                    <div class="setting-input-row">
+                        <label for="input-objectif" class="setting-input-label">
+                            🎯 Objectif calorique quotidien
+                        </label>
+                        <div class="setting-input-wrapper">
+                            <input type="number" id="input-objectif" class="setting-input" min="1000" max="5000"
+                                step="50" placeholder="2500" />
+                            <span class="setting-input-unit">kcal</span>
+                        </div>
+                        <span class="setting-input-hint">Entre 1000 et 5000 kcal</span>
+                    </div>
+
+                    <!-- Poids -->
+                    <div class="setting-input-row">
+                        <label for="input-poids" class="setting-input-label">
+                            ⚖️ Poids
+                        </label>
+                        <div class="setting-input-wrapper">
+                            <input type="number" id="input-poids" class="setting-input" min="30" max="300" step="0.1"
+                                placeholder="70" />
+                            <span class="setting-input-unit">kg</span>
+                        </div>
+                        <span class="setting-input-hint">Entre 30 et 300 kg</span>
+                    </div>
+
+                    <!-- 🆕 Bouton Enregistrer -->
+                    <button id="btn-save-settings" class="action-btn action-btn-primary">
+                        💾 Enregistrer les modifications
+                    </button>
+                </div>
+
+                <!-- Actions -->
                 <div class="modal-actions">
                     <button id="btn-clear-history" class="action-btn action-btn-secondary">
                         Effacer l'historique du jour
@@ -240,7 +276,17 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <!-- Modules JS -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/nutrition.js"></script>
+    <script src="js/history.js"></script>
+    <script src="js/edit.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/dictation.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/app-page.js"></script>
+    <script src="js/main.js"></script>
 </body>
 
 </html>

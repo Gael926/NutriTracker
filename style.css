@@ -979,3 +979,289 @@ body {
 .animate-shake {
   animation: shake 0.3s ease-in-out;
 }
+
+/* ========================================
+   STYLES POUR AFFICHAGE DES MACROS DANS L'HISTORIQUE
+   À ajouter à la fin de votre style.css
+   ======================================== */
+
+/* Conteneur pour aligner les éléments à droite */
+.item-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+/* Conteneur des macros */
+.macros-info {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Style individuel de chaque macro */
+.macro {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  transition: all 0.2s ease;
+}
+
+/* Survol des macros */
+.macro:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+/* Couleurs spécifiques pour chaque macro */
+.macro-proteines {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.2);
+}
+
+.macro-glucides {
+  color: #60a5fa;
+  border-color: rgba(96, 165, 250, 0.2);
+}
+
+.macro-lipides {
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.2);
+}
+
+/* Survol avec couleurs accentuées */
+.macro-proteines:hover {
+  background: rgba(248, 113, 113, 0.1);
+  border-color: rgba(248, 113, 113, 0.3);
+}
+
+.macro-glucides:hover {
+  background: rgba(96, 165, 250, 0.1);
+  border-color: rgba(96, 165, 250, 0.3);
+}
+
+.macro-lipides:hover {
+  background: rgba(52, 211, 153, 0.1);
+  border-color: rgba(52, 211, 153, 0.3);
+}
+
+/* Adapter l'espacement de l'item de repas pour accommoder les macros */
+.repas-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
+}
+
+.repas-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Ajuster la largeur de .info pour laisser de la place aux macros */
+.repas-item .info {
+  flex: 1;
+  min-width: 0;
+  /* Permet le text overflow */
+}
+
+/* Le kcal reste comme avant */
+.repas-item .kcal {
+  font-weight: 600;
+  color: #10b981;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+/* Le bouton d'édition reste comme avant */
+.repas-item .btn-edit {
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #94a3b8;
+}
+
+.repas-item .btn-edit:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #e2e8f0;
+}
+
+/* ========================================
+   RESPONSIVE - Masquer les macros sur petits écrans
+   ======================================== */
+
+@media (max-width: 640px) {
+
+  /* Sur mobile, afficher les macros en colonne sous le nom */
+  .item-right {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+  }
+
+  .macros-info {
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
+  }
+
+  .macro {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+}
+
+@media (max-width: 480px) {
+
+  /* Sur très petits écrans, masquer complètement les macros */
+  .macros-info {
+    display: none;
+  }
+}
+
+
+/* ========================================
+   STYLES POUR PARAMÈTRES MODIFIABLES
+   ======================================== */
+
+/* Groupe de paramètres modifiables */
+.settings-group-editable {
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.settings-subtitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #10b981;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Ligne d'input de paramètre */
+.setting-input-row {
+  margin-bottom: 20px;
+}
+
+.setting-input-row:last-of-type {
+  margin-bottom: 24px;
+}
+
+.setting-input-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #e2e8f0;
+  margin-bottom: 8px;
+}
+
+/* Wrapper pour input + unité */
+.setting-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.setting-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px 60px 12px 16px;
+  color: #f1f5f9;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.setting-input:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.setting-input:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* Unité (kcal, kg) */
+.setting-input-unit {
+  position: absolute;
+  right: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #10b981;
+  pointer-events: none;
+}
+
+/* Texte d'aide sous l'input */
+.setting-input-hint {
+  display: block;
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 6px;
+  padding-left: 4px;
+}
+
+/* Bouton Enregistrer dans le groupe modifiable */
+.settings-group-editable .action-btn {
+  width: 100%;
+  margin-top: 8px;
+}
+
+/* Amélioration du bouton primaire */
+.action-btn-primary {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.action-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+.action-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .settings-group-editable {
+    padding: 16px;
+  }
+
+  .setting-input {
+    font-size: 14px;
+    padding: 10px 55px 10px 12px;
+  }
+
+  .setting-input-unit {
+    right: 12px;
+    font-size: 12px;
+  }
+}
