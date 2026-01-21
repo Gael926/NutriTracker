@@ -27,14 +27,22 @@ function updateTotalFromData(data, stats = null) {
     }, 0);
 
     const objectif = user.objectif || 2500;
+    const poids = user.poids || 70;  // Poids en kg, défaut 70kg
     const pourcentage = Math.round((totalKcal / objectif) * 100);
+
+    // Calcul des objectifs macros basés sur le poids (même logique que n8n)
+    const objProteines = Math.round(poids * 1.8);
+    const kcalProteines = objProteines * 4;
+    const kcalRestantes = objectif - kcalProteines;
+    const objGlucides = Math.round((kcalRestantes * 0.70) / 4);
+    const objLipides = Math.round((kcalRestantes * 0.30) / 9);
 
     // Construire un objet stats simulé pour le fallback
     const fallbackStats = {
-        objectifs: { kcal: objectif, proteines: 0, glucides: 0, lipides: 0 },
+        objectifs: { kcal: objectif, proteines: objProteines, glucides: objGlucides, lipides: objLipides },
         consomme: { kcal: totalKcal, proteines: 0, glucides: 0, lipides: 0 },
         pourcentages: { kcal: pourcentage, proteines: 0, glucides: 0, lipides: 0 },
-        ratios: { proteines: 0, glucides: 0, lipides: 0 }
+        ratios: { proteines: 35, glucides: 45, lipides: 20 }
     };
 
     updateNutritionDisplay(fallbackStats);
