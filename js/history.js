@@ -219,11 +219,7 @@ function updateEauSection(stats) {
         eauStatus.textContent = '✅ Objectif atteint !';
         eauStatus.className = 'eau-status objectif-atteint';
       } else {
-        let statusText = `Encore ${eau.restant}L à boire`;
-        if (eau.heuresSport > 0) {
-          statusText += ` (objectif +${Math.floor(eau.heuresSport)}L pour ${eau.heuresSport.toFixed(1)}h de sport)`;
-        }
-        eauStatus.textContent = statusText;
+        eauStatus.textContent = `Encore ${eau.restant}L à boire`;
         eauStatus.className = 'eau-status';
       }
     }
