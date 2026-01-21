@@ -12,13 +12,16 @@ function updateTotalFromData(data, stats = null) {
     }
 
     // Fallback: calculer les calories à partir des items (ancien comportement)
+    // Note: Le sport n'est PAS compté ici car il modifie l'objectif, pas le consommé
     const totalKcal = data.reduce((sum, r) => {
         const typeValue = r['Type (REPAS / SPORT)'] || r.Type || '';
         const isSport = typeValue.toUpperCase() === 'SPORT';
+        const isEau = typeValue.toUpperCase() === 'EAU';
         const kcal = parseInt(r.Kcal || 0, 10);
 
-        if (isSport) {
-            return sum - Math.abs(kcal);
+        // Sport et eau ne comptent pas dans les calories consommées
+        if (isSport || isEau) {
+            return sum;
         }
         return sum + kcal;
     }, 0);

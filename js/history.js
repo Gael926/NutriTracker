@@ -157,7 +157,7 @@ async function loadHistory() {
       <span class="details">${momentText}${details ? ' · ' + details : ''}</span>
     </div>
     <div class="item-right">
-      <span class="kcal">${kcal} kcal</span>
+      <span class="kcal">${isSport ? 'Objectif +' + Math.abs(kcal) : Math.abs(kcal) + ' kcal'}</span>
       ${macrosHTML}
       <button class="btn-edit" onclick="openEditModal(${rowNumber}, '${aliment.replace(/'/g, "\\'")}', ${quantite || 0}, '${unite}', ${kcal})" title="Modifier">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
