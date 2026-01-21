@@ -405,6 +405,30 @@ body {
   background: linear-gradient(90deg, #6366f1, #818cf8);
 }
 
+/* Eau - Bleu clair */
+.progress-eau {
+  background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+}
+
+.macro-eau .macro-label {
+  color: #38bdf8;
+}
+
+.macro-eau .macro-value {
+  color: #38bdf8;
+}
+
+.eau-status {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+.eau-status.objectif-atteint {
+  color: #10b981;
+}
+
 .progress-percentage {
   font-size: 0.875rem;
   font-weight: 700;
@@ -1263,5 +1287,113 @@ body {
   .setting-input-unit {
     right: 12px;
     font-size: 12px;
+  }
+}
+
+/* ========================================
+   STYLES POUR TRACKING D'EAU (VERSION SIMPLE)
+   À ajouter à la fin de style.css
+   ======================================== */
+
+/* Card eau */
+.stat-card-eau {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.stat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.stat-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-icon {
+  font-size: 24px;
+}
+
+.stat-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #3b82f6;
+}
+
+/* Progress bar eau */
+.progress-bar {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.progress-fill-eau {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* Détails */
+.stat-details {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+/* Hint dictée vocale */
+.stat-hint {
+  font-size: 12px;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: center;
+  font-style: italic;
+}
+
+/* Animation au hover */
+.stat-card-eau:hover {
+  transform: translateY(-2px);
+  transition: transform 0.2s ease;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .stat-card-eau {
+    padding: 16px;
+  }
+
+  .stat-value {
+    font-size: 16px;
+  }
+
+  .stat-icon {
+    font-size: 20px;
+  }
+
+  .stat-hint {
+    font-size: 11px;
+    padding: 8px 10px;
   }
 }

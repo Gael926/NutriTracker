@@ -82,6 +82,10 @@ async function loadHistory() {
           <p class="empty-subtext">Dictez un repas ou une activité sportive</p>
         </div>
       `;
+
+      // 💧 AFFICHER LA SECTION EAU MÊME SI VIDE
+      updateEauSection(stats);
+
       updateTotalFromData([], stats);
       return;
     }
@@ -94,12 +98,18 @@ async function loadHistory() {
       // Mapping des colonnes GSheet (noms exacts)
       const typeValue = r['Type (REPAS / SPORT)'] || r.Type || '';
       const isSport = typeValue.toUpperCase() === 'SPORT';
+      const isEau = typeValue.toUpperCase() === 'EAU'; // 💧 NOUVEAU
       const aliment = r['Aliment (texte)'] || r.Aliment || 'Élément';
       const heure = r.Heure || '';
       const quantite = r.Quantite || '';
       const unite = r['Unite (g, portion, etc.)'] || '';
       const kcal = parseInt(r.Kcal || 0, 10);
       const momentText = r['Moment (Petit-déj / Déjeuner / Dîner / Sport)'] || r.Moment || (isSport ? 'Sport' : 'Repas');
+
+      // 💧 NE PAS AFFICHER L'EAU DANS L'HISTORIQUE
+      if (isEau) {
+        return ''; // On skip l'eau, elle sera affichée dans la section dédiée
+      }
 
       // Icône selon le moment ou le type
       let icon = '🍽️';
@@ -160,6 +170,11 @@ async function loadHistory() {
 `;
     }).join('');
 
+    // ========================================
+    // 💧 AFFICHER LA SECTION EAU
+    // ========================================
+    updateEauSection(stats);
+
     // Mettre à jour le total avec les données reçues et les stats
     updateTotalFromData(items, stats);
 
@@ -172,6 +187,54 @@ async function loadHistory() {
         <p class="empty-subtext">Vérifiez votre connexion internet</p>
       </div>
     `;
+    updateEauSection(null);
     updateTotalFromData([], null);
+  }
+}
+
+// ========================================
+// 💧 FONCTION POUR METTRE À JOUR LA BARRE D'EAU
+// ========================================
+function updateEauSection(stats) {
+  // Récupérer les éléments de la barre d'eau intégrée
+  const totalEau = document.getElementById('total-eau');
+  const barreEau = document.getElementById('barre-eau');
+  const pourcentageEau = document.getElementById('pourcentage-eau');
+  const eauStatus = document.getElementById('eau-status');
+
+  if (!totalEau || !barreEau || !pourcentageEau) return;
+
+  if (stats && stats.eau) {
+    const eau = stats.eau;
+    const pourcentage = Math.min(eau.pourcentage, 100);
+
+    // Mettre à jour l'affichage
+    totalEau.textContent = `${eau.consomme}L / ${eau.objectif}L`;
+    barreEau.style.width = `${pourcentage}%`;
+    pourcentageEau.textContent = `${Math.round(pourcentage)}%`;
+
+    // Mettre à jour le statut
+    if (eauStatus) {
+      if (eau.restant <= 0) {
+        eauStatus.textContent = '✅ Objectif atteint !';
+        eauStatus.className = 'eau-status objectif-atteint';
+      } else {
+        let statusText = `Encore ${eau.restant}L à boire`;
+        if (eau.heuresSport > 0) {
+          statusText += ` (objectif +${Math.floor(eau.heuresSport)}L pour ${eau.heuresSport.toFixed(1)}h de sport)`;
+        }
+        eauStatus.textContent = statusText;
+        eauStatus.className = 'eau-status';
+      }
+    }
+  } else {
+    // Valeurs par défaut si pas de données
+    totalEau.textContent = '0 / 2L';
+    barreEau.style.width = '0%';
+    pourcentageEau.textContent = '0%';
+    if (eauStatus) {
+      eauStatus.textContent = '';
+      eauStatus.className = 'eau-status';
+    }
   }
 }
