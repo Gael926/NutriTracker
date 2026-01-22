@@ -751,12 +751,15 @@ body {
   position: relative;
   width: 100%;
   max-width: 440px;
+  max-height: 90vh;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   box-shadow: var(--shadow-xl);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-panel-header {
@@ -793,6 +796,8 @@ body {
 
 .modal-panel-body {
   padding: 1.75rem 1.5rem;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .settings-group {
@@ -1168,92 +1173,128 @@ body {
 
 /* Groupe de paramètres modifiables */
 .settings-group-editable {
-  background: rgba(16, 185, 129, 0.05);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: 12px;
-  padding: 20px;
-  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
 }
 
 .settings-subtitle {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   color: #10b981;
-  margin-bottom: 16px;
+  margin-bottom: 4px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-/* Ligne d'input de paramètre */
+/* Ligne d'input stylisée comme les champs non-modifiables */
 .setting-input-row {
-  margin-bottom: 20px;
-}
-
-.setting-input-row:last-of-type {
-  margin-bottom: 24px;
-}
-
-.setting-input-label {
-  display: block;
-  font-size: 14px;
-  font-weight: 500;
-  color: #e2e8f0;
-  margin-bottom: 8px;
-}
-
-/* Wrapper pour input + unité */
-.setting-input-wrapper {
-  position: relative;
   display: flex;
+  justify-content: space-between;
   align-items: center;
 }
 
+.setting-input-label {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Input inline qui ressemble à une valeur */
+.setting-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .setting-input {
-  flex: 1;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 12px 60px 12px 16px;
-  color: #f1f5f9;
-  font-size: 16px;
-  font-weight: 600;
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.3);
+  padding: 4px 8px;
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-align: right;
+  width: 80px;
   transition: all 0.2s ease;
 }
 
 .setting-input:focus {
   outline: none;
-  background: rgba(255, 255, 255, 0.08);
-  border-color: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+  border-bottom-color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 4px;
 }
 
 .setting-input:hover {
-  background: rgba(255, 255, 255, 0.07);
+  border-bottom-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Masquer les flèches natives du navigateur */
+.setting-input::-webkit-inner-spin-button,
+.setting-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+.setting-input {
+  -moz-appearance: textfield;
+}
+
+/* Boutons +/- personnalisés */
+.spin-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.spin-btn:hover {
+  background: rgba(16, 185, 129, 0.3);
+  transform: scale(1.1);
+}
+
+.spin-btn:active {
+  transform: scale(0.95);
+  background: rgba(16, 185, 129, 0.4);
+}
+
+/* Container avec boutons personnalisés */
+.setting-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* Unité (kcal, kg) */
 .setting-input-unit {
-  position: absolute;
-  right: 16px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #10b981;
-  pointer-events: none;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
-/* Texte d'aide sous l'input */
+/* Masquer le hint */
 .setting-input-hint {
-  display: block;
-  font-size: 12px;
-  color: #94a3b8;
-  margin-top: 6px;
-  padding-left: 4px;
+  display: none;
 }
 
-/* Bouton Enregistrer dans le groupe modifiable */
+/* Bouton Enregistrer */
 .settings-group-editable .action-btn {
   width: 100%;
-  margin-top: 8px;
+  margin-top: 0.5rem;
 }
 
 /* Amélioration du bouton primaire */

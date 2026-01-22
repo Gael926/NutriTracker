@@ -39,7 +39,26 @@ function initSettingsModal() {
         });
     }
 
-    // 🆕 Sauvegarder les modifications
+    // Initialiser les boutons +/- personnalisés
+    document.querySelectorAll('.spin-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetId = btn.dataset.target;
+            const step = parseFloat(btn.dataset.step);
+            const input = document.getElementById(targetId);
+
+            if (input) {
+                const currentValue = parseFloat(input.value) || 0;
+                const min = parseFloat(input.min) || -Infinity;
+                const max = parseFloat(input.max) || Infinity;
+                const newValue = Math.min(max, Math.max(min, currentValue + step));
+
+                // Arrondir pour éviter les problèmes de précision flottante
+                input.value = Math.round(newValue * 10) / 10;
+            }
+        });
+    });
+
+    // Sauvegarder les modifications
     const btnSave = document.getElementById('btn-save-settings');
     if (btnSave) {
         btnSave.addEventListener('click', async () => {
