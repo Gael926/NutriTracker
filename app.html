@@ -137,49 +137,54 @@
             </div>
         </div>
 
-        <!-- Dictation Button -->
-        <div class="dictation-section">
-            <button id="btn-dicter" class="dictation-btn" title="Dicter un repas">
-                <div class="dictation-icon">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                        <path
-                            d="M12 1C10.3431 1 9 2.34315 9 4V12C9 13.6569 10.3431 15 12 15C13.6569 15 15 13.6569 15 12V4C15 2.34315 13.6569 1 12 1Z"
-                            stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M19 10V12C19 15.866 15.866 19 12 19M5 10V12C5 15.866 8.13401 19 12 19M12 19V23M8 23H16"
-                            stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                </div>
-                <span id="dicter-text" class="dictation-text">Enregistrer</span>
-            </button>
-            <p id="dicter-status" class="dictation-hint">Dictez un repas ou une activité</p>
+        <!-- Actions Grid -->
+        <div class="actions-grid">
+            <!-- Journal Button (Primary) -->
+            <div class="action-card">
+                <button id="btn-dicter" class="dictation-btn" title="Dicter un repas">
+                    <div class="dictation-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                            <path
+                                d="M12 1C10.3431 1 9 2.34315 9 4V12C9 13.6569 10.3431 15 12 15C13.6569 15 15 13.6569 15 12V4C15 2.34315 13.6569 1 12 1Z"
+                                stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            <path
+                                d="M19 10V12C19 15.866 15.866 19 12 19M5 10V12C5 15.866 8.13401 19 12 19M12 19V23M8 23H16"
+                                stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <span id="dicter-text" class="dictation-text">Journal</span>
+                </button>
+                <p id="dicter-status" class="action-hint">Repas & Activités</p>
+            </div>
+
+            <!-- Preferences Button (Secondary) -->
+            <div class="action-card">
+                <button id="btn-preferences-diner" class="dictation-btn dictation-btn-preferences"
+                    onclick="handlePreferencesDiner()" title="Définir le frigo">
+                    <div class="dictation-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                            <line x1="12" y1="19" x2="12" y2="23"></line>
+                            <line x1="8" y1="23" x2="16" y2="23"></line>
+                        </svg>
+                    </div>
+                    <span id="preferences-text" class="dictation-text">Mon Frigo</span>
+                </button>
+                <p id="preferences-status" class="action-hint">Préférences Dîner</p>
+            </div>
         </div>
 
-        <!-- Preferences Diner Section -->
-        <!-- Preferences Diner Section -->
-        <div class="dictation-section" style="margin-top: 2rem; margin-bottom: 2rem;">
-            <h2 style="font-size: 1.1rem; color: #e2e8f0; margin-bottom: 0.5rem; text-align: center;">🍽️ Préférences
-                Dîner</h2>
-            <button id="btn-preferences-diner" class="dictation-btn dictation-btn-preferences"
-                onclick="handlePreferencesDiner()">
-                <div class="dictation-icon">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                        <line x1="12" y1="19" x2="12" y2="23"></line>
-                        <line x1="8" y1="23" x2="16" y2="23"></line>
-                    </svg>
-                </div>
-                <span id="preferences-text" class="dictation-text">Préférences</span>
-            </button>
-            <p id="preferences-status" class="dictation-hint">Définissez vos aliments préférés pour le dîner</p>
-
-            <div class="info-box"
-                style="margin-top: 1.5rem; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border-left: 4px solid #667eea; padding: 1rem; border-radius: 8px; max-width: 400px; margin-left: auto; margin-right: auto; text-align: left;">
-                <p style="margin: 0; font-size: 0.9rem; line-height: 1.5; color: #a3bffa;">
-                    <strong>💡 Comment ça marche ?</strong><br>
-                    Dites ce que vous avez dans votre frigo (ex: "poulet, riz"). Vos préférences seront utilisées pour
-                    le menu du soir.
-                </p>
+        <!-- Info Pill (Collapsible/Discrete) -->
+        <div class="info-pill" onclick="this.classList.toggle('expanded')">
+            <div class="info-header">
+                <span class="info-icon">💡</span>
+                <span class="info-text">Comment marche le Dîner ?</span>
+            </div>
+            <div class="info-content">
+                Listez vos ingrédients disponibles (ex: poulet, courgettes). Nous composerons votre repas idéal pour
+                compléter parfaitement vos apports de la journée.
             </div>
         </div>
 

@@ -4,53 +4,77 @@
 function updateTotalFromData(data, stats = null) {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-    // Si on a des stats de l'API, les utiliser directement
-    if (stats && stats.consomme && stats.objectifs) {
-        console.log('📊 Mise à jour avec stats API:', stats);
-        updateNutritionDisplay(stats);
-        return;
-    }
-
-    // Fallback: calculer les calories à partir des items (ancien comportement)
-    // Note: Le sport n'est PAS compté ici car il modifie l'objectif, pas le consommé
-    const totalKcal = data.reduce((sum, r) => {
-        const typeValue = r['Type (REPAS / SPORT)'] || r.Type || '';
-        const isSport = typeValue.toUpperCase() === 'SPORT';
-        const isEau = typeValue.toUpperCase() === 'EAU';
-        const kcal = parseInt(r.Kcal || 0, 10);
-
-        // Sport et eau ne comptent pas dans les calories consommées
-        if (isSport || isEau) {
-            return sum;
-        }
-        return sum + kcal;
-    }, 0);
-
+    // Récupérer les données utilisateur pour les calculs
     const objectif = user.objectif || 2500;
     const poids = user.poids || 70;  // Poids en kg, défaut 70kg
+
+    // Si on a des données de consommation de l'API, les utiliser
+    let totalKcal = 0;
+    let consommations = { kcal: 0, proteines: 0, glucides: 0, lipides: 0 };
+
+    if (stats && stats.consomme) {
+        consommations = stats.consomme;
+        totalKcal = stats.consomme.kcal;
+    } else {
+        // Fallback: calculer les calories à partir des items localement
+        totalKcal = data.reduce((sum, r) => {
+            const typeValue = r['Type (REPAS / SPORT)'] || r.Type || '';
+            const isSport = typeValue.toUpperCase() === 'SPORT';
+            const isEau = typeValue.toUpperCase() === 'EAU';
+            const kcal = parseInt(r.Kcal || 0, 10);
+
+            if (isSport || isEau) return sum;
+            return sum + kcal;
+        }, 0);
+        consommations.kcal = totalKcal;
+    }
+
     const pourcentage = Math.round((totalKcal / objectif) * 100);
 
-    // Calcul des objectifs macros basés sur le poids (même logique que n8n)
-    const objProteines = Math.round(poids * 1.8);
+    // ============================================================
+    // CALCUL "INTELLIGENT" DES OBJECTIFS (Source de vérité = Frontend)
+    // ============================================================
+    const ratioP = 1.8;
+
+    const objProteines = Math.round(poids * ratioP);
     const kcalProteines = objProteines * 4;
     const kcalRestantes = objectif - kcalProteines;
-    const objGlucides = Math.round((kcalRestantes * 0.70) / 4);
-    const objLipides = Math.round((kcalRestantes * 0.30) / 9);
 
-    // Calculer les ratios dynamiquement basés sur les objectifs réels
+    // Ratios GLUCIDES / LIPIDES (Modifiables ici)
+    const ratioG = 0.65; // 65% du reste
+    const ratioL = 0.35; // 35% du reste
+
+    const objGlucides = Math.round((kcalRestantes * ratioG) / 4);
+    const objLipides = Math.round((kcalRestantes * ratioL) / 9);
+
+    // Calcul des ratios réels pour l'affichage
     const ratioProteines = Math.round((kcalProteines / objectif) * 100);
     const ratioGlucides = Math.round(((objGlucides * 4) / objectif) * 100);
     const ratioLipides = Math.round(((objLipides * 9) / objectif) * 100);
 
-    // Construire un objet stats simulé pour le fallback
-    const fallbackStats = {
-        objectifs: { kcal: objectif, proteines: objProteines, glucides: objGlucides, lipides: objLipides },
-        consomme: { kcal: totalKcal, proteines: 0, glucides: 0, lipides: 0 },
-        pourcentages: { kcal: pourcentage, proteines: 0, glucides: 0, lipides: 0 },
-        ratios: { proteines: ratioProteines, glucides: ratioGlucides, lipides: ratioLipides }
+    // Construire l'objet stats final
+    const finalStats = {
+        objectifs: {
+            kcal: objectif,
+            proteines: objProteines,
+            glucides: objGlucides,
+            lipides: objLipides
+        },
+        consomme: consommations,
+        pourcentages: {
+            kcal: pourcentage,
+            proteines: Math.round((consommations.proteines / objProteines) * 100) || 0,
+            glucides: Math.round((consommations.glucides / objGlucides) * 100) || 0,
+            lipides: Math.round((consommations.lipides / objLipides) * 100) || 0
+        },
+        ratios: {
+            proteines: ratioProteines,
+            glucides: ratioGlucides,
+            lipides: ratioLipides
+        }
     };
 
-    updateNutritionDisplay(fallbackStats);
+    updateNutritionDisplay(finalStats);
 }
 
 // Met à jour l'affichage de toutes les barres de nutrition
