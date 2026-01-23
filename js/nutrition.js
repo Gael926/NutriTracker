@@ -37,12 +37,17 @@ function updateTotalFromData(data, stats = null) {
     const objGlucides = Math.round((kcalRestantes * 0.70) / 4);
     const objLipides = Math.round((kcalRestantes * 0.30) / 9);
 
+    // Calculer les ratios dynamiquement basés sur les objectifs réels
+    const ratioProteines = Math.round((kcalProteines / objectif) * 100);
+    const ratioGlucides = Math.round(((objGlucides * 4) / objectif) * 100);
+    const ratioLipides = Math.round(((objLipides * 9) / objectif) * 100);
+
     // Construire un objet stats simulé pour le fallback
     const fallbackStats = {
         objectifs: { kcal: objectif, proteines: objProteines, glucides: objGlucides, lipides: objLipides },
         consomme: { kcal: totalKcal, proteines: 0, glucides: 0, lipides: 0 },
         pourcentages: { kcal: pourcentage, proteines: 0, glucides: 0, lipides: 0 },
-        ratios: { proteines: 35, glucides: 45, lipides: 20 }
+        ratios: { proteines: ratioProteines, glucides: ratioGlucides, lipides: ratioLipides }
     };
 
     updateNutritionDisplay(fallbackStats);
