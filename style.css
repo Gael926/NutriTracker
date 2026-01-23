@@ -1439,3 +1439,48 @@ body {
     padding: 8px 10px;
   }
 }
+
+/* Bouton Préférences Dîner */
+.dictation-btn-preferences {
+  border-color: #667eea;
+}
+
+.dictation-btn-preferences:hover {
+  border-color: #764ba2;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+}
+
+.dictation-btn-preferences .dictation-icon svg path {
+  stroke: #667eea;
+}
+
+.dictation-btn-preferences:hover .dictation-icon svg path {
+  stroke: #764ba2;
+}
+
+.dictation-btn-preferences.listening {
+  border-color: #764ba2;
+  animation: pulse-border-purple 1.5s ease-in-out infinite;
+}
+
+.dictation-btn-preferences.listening .dictation-icon svg path {
+  stroke: #764ba2;
+}
+
+.dictation-btn-preferences.listening .dictation-text {
+  color: #764ba2;
+}
+
+@keyframes pulse-border-purple {
+  0% {
+    box-shadow: 0 0 0 0 rgba(118, 75, 162, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 15px rgba(118, 75, 162, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(118, 75, 162, 0);
+  }
+}

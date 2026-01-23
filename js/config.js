@@ -3,6 +3,7 @@ const CONFIG = {
     endpoints: {
         inscription: 'https://n8n.srv957891.hstgr.cloud/webhook/inscription-client',
         dictee: 'https://n8n.srv957891.hstgr.cloud/webhook/dictee-nutrition-v3',
+        preferencesDiner: 'https://n8n.srv957891.hstgr.cloud/webhook/preferences-diner',
         historique: 'https://n8n.srv957891.hstgr.cloud/webhook/historique',
         updateItem: 'https://n8n.srv957891.hstgr.cloud/webhook/update-item',
         deleteItem: 'https://n8n.srv957891.hstgr.cloud/webhook/delete-item',

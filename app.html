@@ -154,6 +154,35 @@
             <p id="dicter-status" class="dictation-hint">Dictez un repas ou une activité</p>
         </div>
 
+        <!-- Preferences Diner Section -->
+        <!-- Preferences Diner Section -->
+        <div class="dictation-section" style="margin-top: 2rem; margin-bottom: 2rem;">
+            <h2 style="font-size: 1.1rem; color: #e2e8f0; margin-bottom: 0.5rem; text-align: center;">🍽️ Préférences
+                Dîner</h2>
+            <button id="btn-preferences-diner" class="dictation-btn dictation-btn-preferences"
+                onclick="handlePreferencesDiner()">
+                <div class="dictation-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                        <line x1="12" y1="19" x2="12" y2="23"></line>
+                        <line x1="8" y1="23" x2="16" y2="23"></line>
+                    </svg>
+                </div>
+                <span id="preferences-text" class="dictation-text">Préférences</span>
+            </button>
+            <p id="preferences-status" class="dictation-hint">Définissez vos aliments préférés pour le dîner</p>
+
+            <div class="info-box"
+                style="margin-top: 1.5rem; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border-left: 4px solid #667eea; padding: 1rem; border-radius: 8px; max-width: 400px; margin-left: auto; margin-right: auto; text-align: left;">
+                <p style="margin: 0; font-size: 0.9rem; line-height: 1.5; color: #a3bffa;">
+                    <strong>💡 Comment ça marche ?</strong><br>
+                    Dites ce que vous avez dans votre frigo (ex: "poulet, riz"). Vos préférences seront utilisées pour
+                    le menu du soir.
+                </p>
+            </div>
+        </div>
+
         <!-- History Section -->
         <div class="history-section">
             <h2 class="history-title">Aujourd'hui</h2>
@@ -165,146 +194,148 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Settings Modal -->
-    <div id="modal-settings" class="modal hidden">
-        <div class="modal-overlay"></div>
-        <div class="modal-panel">
-            <div class="modal-panel-header">
-                <h3 class="modal-panel-title">Paramètres</h3>
-                <button id="modal-close" class="modal-close-btn">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                    </svg>
-                </button>
-            </div>
-            <div class="modal-panel-body">
-
-                <!-- Informations non modifiables -->
-                <div class="settings-group">
-                    <div class="setting-row">
-                        <span class="setting-label">Email</span>
-                        <span id="setting-email" class="setting-value">-</span>
-                    </div>
-                    <div class="setting-row">
-                        <span class="setting-label">Numéro de téléphone</span>
-                        <span id="setting-phone" class="setting-value">-</span>
-                    </div>
+        <!-- Settings Modal -->
+        <div id="modal-settings" class="modal hidden">
+            <div class="modal-overlay"></div>
+            <div class="modal-panel">
+                <div class="modal-panel-header">
+                    <h3 class="modal-panel-title">Paramètres</h3>
+                    <button id="modal-close" class="modal-close-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
+                        </svg>
+                    </button>
                 </div>
+                <div class="modal-panel-body">
 
-                <!-- Paramètres modifiables -->
-                <div class="settings-group-editable">
-
-                    <!-- Objectif calorique -->
-                    <div class="setting-input-row">
-                        <span class="setting-input-label">Objectif calorique</span>
-                        <div class="setting-input-wrapper">
-                            <button type="button" class="spin-btn spin-down" data-target="input-objectif"
-                                data-step="-50">−</button>
-                            <input type="number" id="input-objectif" class="setting-input" min="1000" max="5000"
-                                step="50" placeholder="2500" />
-                            <button type="button" class="spin-btn spin-up" data-target="input-objectif"
-                                data-step="50">+</button>
-                            <span class="setting-input-unit">kcal</span>
+                    <!-- Informations non modifiables -->
+                    <div class="settings-group">
+                        <div class="setting-row">
+                            <span class="setting-label">Email</span>
+                            <span id="setting-email" class="setting-value">-</span>
+                        </div>
+                        <div class="setting-row">
+                            <span class="setting-label">Numéro de téléphone</span>
+                            <span id="setting-phone" class="setting-value">-</span>
                         </div>
                     </div>
 
-                    <!-- Poids -->
-                    <div class="setting-input-row">
-                        <span class="setting-input-label">Poids</span>
-                        <div class="setting-input-wrapper">
-                            <button type="button" class="spin-btn spin-down" data-target="input-poids"
-                                data-step="-0.5">−</button>
-                            <input type="number" id="input-poids" class="setting-input" min="30" max="300" step="0.5"
-                                placeholder="70" />
-                            <button type="button" class="spin-btn spin-up" data-target="input-poids"
-                                data-step="0.5">+</button>
-                            <span class="setting-input-unit">kg</span>
+                    <!-- Paramètres modifiables -->
+                    <div class="settings-group-editable">
+
+                        <!-- Objectif calorique -->
+                        <div class="setting-input-row">
+                            <span class="setting-input-label">Objectif calorique</span>
+                            <div class="setting-input-wrapper">
+                                <button type="button" class="spin-btn spin-down" data-target="input-objectif"
+                                    data-step="-50">−</button>
+                                <input type="number" id="input-objectif" class="setting-input" min="1000" max="5000"
+                                    step="50" placeholder="2500" />
+                                <button type="button" class="spin-btn spin-up" data-target="input-objectif"
+                                    data-step="50">+</button>
+                                <span class="setting-input-unit">kcal</span>
+                            </div>
+                        </div>
+
+                        <!-- Poids -->
+                        <div class="setting-input-row">
+                            <span class="setting-input-label">Poids</span>
+                            <div class="setting-input-wrapper">
+                                <button type="button" class="spin-btn spin-down" data-target="input-poids"
+                                    data-step="-0.5">−</button>
+                                <input type="number" id="input-poids" class="setting-input" min="30" max="300"
+                                    step="0.5" placeholder="70" />
+                                <button type="button" class="spin-btn spin-up" data-target="input-poids"
+                                    data-step="0.5">+</button>
+                                <span class="setting-input-unit">kg</span>
+                            </div>
+                        </div>
+
+                        <!-- Bouton Enregistrer -->
+                        <button id="btn-save-settings" class="action-btn action-btn-primary">
+                            Enregistrer les modifications
+                        </button>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="modal-actions">
+                        <button id="btn-clear-history" class="action-btn action-btn-secondary">
+                            Effacer l'historique du jour
+                        </button>
+                        <button id="btn-logout" class="action-btn action-btn-danger">
+                            Déconnexion
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div id="toast" class="toast-notification hidden">
+            <span id="toast-message"></span>
+        </div>
+
+        <!-- Edit Modal -->
+        <div id="modal-edit" class="modal hidden">
+            <div class="modal-overlay" onclick="closeEditModal()"></div>
+            <div class="modal-panel">
+                <div class="modal-panel-header">
+                    <h3 class="modal-panel-title">Modifier l'élément</h3>
+                    <button onclick="closeEditModal()" class="modal-close-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-panel-body">
+                    <input type="hidden" id="edit-row-number">
+                    <input type="hidden" id="edit-quantite-initiale">
+                    <input type="hidden" id="edit-kcal-initial">
+                    <div class="form-group">
+                        <label for="edit-nom" class="form-label">Nom</label>
+                        <input type="text" id="edit-nom" class="form-input" placeholder="Nom de l'aliment">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-quantite" class="form-label">Quantité</label>
+                            <input type="number" id="edit-quantite" class="form-input" placeholder="0" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-unite" class="form-label">Unité</label>
+                            <input type="text" id="edit-unite" class="form-input form-input-readonly" readonly>
                         </div>
                     </div>
-
-                    <!-- Bouton Enregistrer -->
-                    <button id="btn-save-settings" class="action-btn action-btn-primary">
-                        Enregistrer les modifications
-                    </button>
-                </div>
-
-                <!-- Actions -->
-                <div class="modal-actions">
-                    <button id="btn-clear-history" class="action-btn action-btn-secondary">
-                        Effacer l'historique du jour
-                    </button>
-                    <button id="btn-logout" class="action-btn action-btn-danger">
-                        Déconnexion
-                    </button>
+                    <div class="form-group">
+                        <label for="edit-kcal" class="form-label">Calories (kcal)</label>
+                        <input type="number" id="edit-kcal" class="form-input" placeholder="0">
+                    </div>
+                    <div class="modal-actions">
+                        <button onclick="deleteItemFromModal()" class="action-btn action-btn-danger">
+                            Supprimer
+                        </button>
+                        <button onclick="saveEditItem()" class="action-btn action-btn-primary">
+                            Enregistrer
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Toast -->
-    <div id="toast" class="toast-notification hidden">
-        <span id="toast-message"></span>
-    </div>
-
-    <!-- Edit Modal -->
-    <div id="modal-edit" class="modal hidden">
-        <div class="modal-overlay" onclick="closeEditModal()"></div>
-        <div class="modal-panel">
-            <div class="modal-panel-header">
-                <h3 class="modal-panel-title">Modifier l'élément</h3>
-                <button onclick="closeEditModal()" class="modal-close-btn">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                    </svg>
-                </button>
-            </div>
-            <div class="modal-panel-body">
-                <input type="hidden" id="edit-row-number">
-                <input type="hidden" id="edit-quantite-initiale">
-                <input type="hidden" id="edit-kcal-initial">
-                <div class="form-group">
-                    <label for="edit-nom" class="form-label">Nom</label>
-                    <input type="text" id="edit-nom" class="form-input" placeholder="Nom de l'aliment">
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="edit-quantite" class="form-label">Quantité</label>
-                        <input type="number" id="edit-quantite" class="form-input" placeholder="0" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-unite" class="form-label">Unité</label>
-                        <input type="text" id="edit-unite" class="form-input form-input-readonly" readonly>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="edit-kcal" class="form-label">Calories (kcal)</label>
-                    <input type="number" id="edit-kcal" class="form-input" placeholder="0">
-                </div>
-                <div class="modal-actions">
-                    <button onclick="deleteItemFromModal()" class="action-btn action-btn-danger">
-                        Supprimer
-                    </button>
-                    <button onclick="saveEditItem()" class="action-btn action-btn-primary">
-                        Enregistrer
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modules JS -->
-    <script src="js/config.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/nutrition.js"></script>
-    <script src="js/history.js"></script>
-    <script src="js/edit.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/dictation.js"></script>
-    <script src="js/settings.js"></script>
-    <script src="js/app-page.js"></script>
-    <script src="js/main.js"></script>
+        <!-- Modules JS -->
+        <script src="js/config.js"></script>
+        <script src="js/utils.js"></script>
+        <script src="js/nutrition.js"></script>
+        <script src="js/history.js"></script>
+        <script src="js/edit.js"></script>
+        <script src="js/api.js"></script>
+        <script src="js/dictation.js"></script>
+        <script src="js/settings.js"></script>
+        <script src="js/preferences-diner.js"></script>
+        <script src="js/app-page.js"></script>
+        <script src="js/main.js"></script>
 </body>
 
 </html>
