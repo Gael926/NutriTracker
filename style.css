@@ -1242,6 +1242,7 @@ body {
 
 .setting-input {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 /* Boutons +/- personnalisés */
