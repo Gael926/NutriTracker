@@ -1358,18 +1358,52 @@ body {
 
 /* Responsive */
 @media (max-width: 480px) {
+
+  /* Layout en colonne pour les settings */
+  .setting-row,
+  .setting-input-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .setting-value {
+    align-self: flex-end;
+    /* Valeur alignée à droite */
+    text-align: right;
+    word-break: break-all;
+    /* Au cas où l'email est très long */
+  }
+
+  /* Pour le téléphone, forcer l'affichage sur une ligne si possible, sinon aligné à droite */
+  #setting-phone {
+    white-space: nowrap;
+  }
+
+  /* Inputs sur toute la largeur disponible */
+  .setting-input-wrapper {
+    width: 100%;
+    justify-content: flex-end;
+    /* Alignement à droite comme demandé */
+  }
+
   .settings-group-editable {
-    padding: 16px;
+    padding: 0;
+    /* Enlever le padding interne qui réduit l'espace */
   }
 
+  /* Ajustements spécifiques aux inputs */
   .setting-input {
-    font-size: 14px;
-    padding: 10px 55px 10px 12px;
+    width: 60px;
+    /* Un peu plus petit sur mobile */
+    font-size: 16px;
+    /* Taille lisible */
   }
 
-  .setting-input-unit {
-    right: 12px;
-    font-size: 12px;
+  .spin-btn {
+    width: 32px;
+    /* Boutons plus gros pour le tactile */
+    height: 32px;
   }
 }
 

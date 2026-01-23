@@ -1,4 +1,41 @@
+// ============================================================
+// MODULE PARTAGÉ : CALCUL DES MACROS 
+// ⚠️ IMPORTANT: Si vous modifiez cette logique, synchronisez avec le workflow n8n "SMS Dîner Quotidien Twilio"
+// ============================================================
+
+function calculerObjectifsMacros(objectifKcal, poids) {
+    const RATIO_PROTEINES_PAR_KG = 1.8;
+    const RATIO_GLUCIDES = 0.65;
+    const RATIO_LIPIDES = 0.35;
+    const KCAL_PAR_G_PROTEINES = 4;
+    const KCAL_PAR_G_GLUCIDES = 4;
+    const KCAL_PAR_G_LIPIDES = 9;
+
+    const objProteines = Math.round(poids * RATIO_PROTEINES_PAR_KG);
+    const kcalProteines = objProteines * KCAL_PAR_G_PROTEINES;
+    const kcalRestantes = objectifKcal - kcalProteines;
+    const objGlucides = Math.round((kcalRestantes * RATIO_GLUCIDES) / KCAL_PAR_G_GLUCIDES);
+    const objLipides = Math.round((kcalRestantes * RATIO_LIPIDES) / KCAL_PAR_G_LIPIDES);
+
+    const ratioProteines = Math.round((kcalProteines / objectifKcal) * 100);
+    const ratioGlucides = Math.round(((objGlucides * KCAL_PAR_G_GLUCIDES) / objectifKcal) * 100);
+    const ratioLipides = Math.round(((objLipides * KCAL_PAR_G_LIPIDES) / objectifKcal) * 100);
+
+    return {
+        proteines: objProteines,
+        glucides: objGlucides,
+        lipides: objLipides,
+        ratios: {
+            proteines: ratioProteines,
+            glucides: ratioGlucides,
+            lipides: ratioLipides
+        }
+    };
+}
+
+// ============================================================
 // GESTION DES STATS NUTRITIONNELLES
+// ============================================================
 
 // Met à jour les stats nutritionnelles à partir des données fournies
 function updateTotalFromData(data, stats = null) {
@@ -31,47 +68,25 @@ function updateTotalFromData(data, stats = null) {
 
     const pourcentage = Math.round((totalKcal / objectif) * 100);
 
-    // ============================================================
-    // CALCUL "INTELLIGENT" DES OBJECTIFS (Source de vérité = Frontend)
-    // ============================================================
-    const ratioP = 1.8;
-
-    const objProteines = Math.round(poids * ratioP);
-    const kcalProteines = objProteines * 4;
-    const kcalRestantes = objectif - kcalProteines;
-
-    // Ratios GLUCIDES / LIPIDES (Modifiables ici)
-    const ratioG = 0.65; // 65% du reste
-    const ratioL = 0.35; // 35% du reste
-
-    const objGlucides = Math.round((kcalRestantes * ratioG) / 4);
-    const objLipides = Math.round((kcalRestantes * ratioL) / 9);
-
-    // Calcul des ratios réels pour l'affichage
-    const ratioProteines = Math.round((kcalProteines / objectif) * 100);
-    const ratioGlucides = Math.round(((objGlucides * 4) / objectif) * 100);
-    const ratioLipides = Math.round(((objLipides * 9) / objectif) * 100);
+    // ✅ CALCUL "INTELLIGENT" DES OBJECTIFS (Source de vérité = Module Partagé)
+    const objectifs = calculerObjectifsMacros(objectif, poids);
 
     // Construire l'objet stats final
     const finalStats = {
         objectifs: {
             kcal: objectif,
-            proteines: objProteines,
-            glucides: objGlucides,
-            lipides: objLipides
+            proteines: objectifs.proteines,
+            glucides: objectifs.glucides,
+            lipides: objectifs.lipides
         },
         consomme: consommations,
         pourcentages: {
             kcal: pourcentage,
-            proteines: Math.round((consommations.proteines / objProteines) * 100) || 0,
-            glucides: Math.round((consommations.glucides / objGlucides) * 100) || 0,
-            lipides: Math.round((consommations.lipides / objLipides) * 100) || 0
+            proteines: Math.round((consommations.proteines / objectifs.proteines) * 100) || 0,
+            glucides: Math.round((consommations.glucides / objectifs.glucides) * 100) || 0,
+            lipides: Math.round((consommations.lipides / objectifs.lipides) * 100) || 0
         },
-        ratios: {
-            proteines: ratioProteines,
-            glucides: ratioGlucides,
-            lipides: ratioLipides
-        }
+        ratios: objectifs.ratios
     };
 
     updateNutritionDisplay(finalStats);
