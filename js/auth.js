@@ -262,12 +262,22 @@ async function handleLogin(email, phone_number, objectif, poids) {
         console.log('📊 Réponse authentification:', data);
 
         if (data.authorized) {
+            // 🔧 S'assurer que objectif et poids sont bien récupérés
+            // Fonction pour vérifier si une valeur est valide (pas vide, pas null, pas 0)
+            const isValidValue = (val) => val !== null && val !== undefined && val !== "" && val !== "0" && val !== 0;
+
+            // Priorité: API (si valide) > formulaire (si fourni) > défaut
+            const storedObjectif = isValidValue(data.Objectif_Kcal) ? data.Objectif_Kcal : (objectif ? objectif : 2500);
+            const storedPoids = isValidValue(data.Poids) ? data.Poids : (poids ? poids : 70);
+
             const user = {
                 email: data.User_ID || email,
                 phone_number: data.Phone_Number || phone_number,
-                objectif: data.Objectif_Kcal || objectif,
-                poids: data.Poids || poids
+                objectif: parseInt(storedObjectif, 10),
+                poids: parseFloat(storedPoids)
             };
+
+            console.log('💾 Données utilisateur stockées:', user);
             localStorage.setItem('user', JSON.stringify(user));
 
             if (data.first_login) {
