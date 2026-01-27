@@ -8,12 +8,7 @@ function initSettingsModal() {
     const btnLogout = document.getElementById('btn-logout');
     const btnClearHistory = document.getElementById('btn-clear-history');
 
-    console.log('🔧 initSettingsModal - modal:', modal, 'btnSettings:', btnSettings);
-
-    if (!modal) {
-        console.error('❌ Modal settings non trouvé');
-        return;
-    }
+    if (!modal) return;
 
     // Récupérer l'overlay spécifique à ce modal
     const modalOverlay = modal.querySelector('.modal-overlay');
@@ -21,14 +16,11 @@ function initSettingsModal() {
     // Ouvrir le modal
     if (btnSettings) {
         btnSettings.addEventListener('click', () => {
-            console.log('🔧 Bouton settings cliqué');
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const user = getUser();
 
             document.getElementById('setting-email').textContent = user.email || '-';
-            // ⭐ Afficher le numéro de téléphone formaté
             document.getElementById('setting-phone').textContent = formatPhoneDisplay(user.phone_number);
 
-            // 🆕 Pré-remplir les inputs modifiables
             const inputObjectif = document.getElementById('input-objectif');
             const inputPoids = document.getElementById('input-poids');
 
@@ -52,7 +44,6 @@ function initSettingsModal() {
                 const max = parseFloat(input.max) || Infinity;
                 const newValue = Math.min(max, Math.max(min, currentValue + step));
 
-                // Arrondir pour éviter les problèmes de précision flottante
                 input.value = Math.round(newValue * 10) / 10;
             }
         });
@@ -62,28 +53,29 @@ function initSettingsModal() {
     const btnSave = document.getElementById('btn-save-settings');
     if (btnSave) {
         btnSave.addEventListener('click', async () => {
+            // Protection double-clic
+            if (btnSave.disabled) return;
+
             const newObjectif = parseInt(document.getElementById('input-objectif').value, 10);
             const newPoids = parseFloat(document.getElementById('input-poids').value);
 
-            // Validation simple
             if (isNaN(newObjectif) || newObjectif < 1000 || newObjectif > 5000) {
-                showNotification('❌ L\'objectif doit être entre 1000 et 5000 kcal');
+                showNotification('L\'objectif doit être entre 1000 et 5000 kcal');
                 return;
             }
 
             if (isNaN(newPoids) || newPoids < 30 || newPoids > 300) {
-                showNotification('❌ Le poids doit être entre 30 et 300 kg');
+                showNotification('Le poids doit être entre 30 et 300 kg');
                 return;
             }
 
-            // Récupérer l'utilisateur actuel
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const user = getUser();
 
-            showNotification('⏳ Mise à jour en cours...');
+            btnSave.disabled = true;
+            showNotification('Mise à jour en cours...');
 
             try {
-                // Appeler le workflow n8n pour synchroniser avec le GSheet
-                const response = await fetch(CONFIG.endpoints.updateUserSettings, {
+                const response = await fetchWithTimeout(CONFIG.endpoints.updateUserSettings, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -109,9 +101,8 @@ function initSettingsModal() {
                 user.poids = newPoids;
                 localStorage.setItem('user', JSON.stringify(user));
 
-                showNotification('✅ Paramètres enregistrés !');
+                showNotification('Paramètres enregistrés !');
 
-                // Rafraîchir l'affichage des calories
                 if (typeof loadHistory === 'function') {
                     await loadHistory();
                 }
@@ -120,7 +111,10 @@ function initSettingsModal() {
 
             } catch (error) {
                 console.error('Erreur mise à jour paramètres:', error);
-                showNotification('❌ Erreur lors de la synchronisation');
+                const isTimeout = error.message.includes('Délai');
+                showNotification(isTimeout ? 'Délai dépassé, réessayez' : 'Erreur lors de la synchronisation');
+            } finally {
+                btnSave.disabled = false;
             }
         });
     }
@@ -146,13 +140,15 @@ function initSettingsModal() {
     // Effacer l'historique du jour
     btnClearHistory?.addEventListener('click', async () => {
         if (confirm('Voulez-vous effacer l\'historique du jour ?')) {
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const user = getUser();
             const today = getTodayISO();
 
-            showNotification('⏳ Suppression en cours...');
+            // Protection double-clic
+            btnClearHistory.disabled = true;
+            showNotification('Suppression en cours...');
 
             try {
-                const response = await fetch(CONFIG.endpoints.clearHistory, {
+                const response = await fetchWithTimeout(CONFIG.endpoints.clearHistory, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -165,14 +161,16 @@ function initSettingsModal() {
                     throw new Error('Erreur serveur');
                 }
 
-                // Rafraîchir l'historique depuis le serveur
                 await loadHistory();
                 modal.classList.add('hidden');
-                showNotification('✅ Historique du jour effacé !');
+                showNotification('Historique du jour effacé !');
 
             } catch (error) {
                 console.error('Erreur suppression historique:', error);
-                showNotification('❌ Erreur lors de la suppression');
+                const isTimeout = error.message.includes('Délai');
+                showNotification(isTimeout ? 'Délai dépassé, réessayez' : 'Erreur lors de la suppression');
+            } finally {
+                btnClearHistory.disabled = false;
             }
         }
     });

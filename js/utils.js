@@ -1,5 +1,28 @@
 // UTILITAIRES
 
+// Fetch avec timeout (30s par défaut) via AbortController
+function fetchWithTimeout(url, options = {}, timeout = 30000) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    return fetch(url, { ...options, signal: controller.signal })
+        .catch((error) => {
+            if (error.name === 'AbortError') {
+                throw new Error('Délai d\'attente dépassé. Réessayez.');
+            }
+            throw error;
+        })
+        .finally(() => clearTimeout(id));
+}
+
+// Récupère l'utilisateur depuis localStorage de manière sécurisée
+function getUser() {
+    try {
+        return JSON.parse(localStorage.getItem('user') || '{}');
+    } catch (e) {
+        return {};
+    }
+}
+
 //Formate une date en DD/MM/YYYY
 function formatDate(date) {
     const d = new Date(date);

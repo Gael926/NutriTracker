@@ -39,7 +39,7 @@ function calculerObjectifsMacros(objectifKcal, poids) {
 
 // Met à jour les stats nutritionnelles à partir des données fournies
 function updateTotalFromData(data, stats = null) {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = getUser();
 
     // Récupérer les données utilisateur pour les calculs
     const objectif = user.objectif || 2500;

@@ -6,6 +6,7 @@
 
 # Project specific
 CLAUDE.md
+.claude/
 
 # Logs and databases
 npm-debug.log*

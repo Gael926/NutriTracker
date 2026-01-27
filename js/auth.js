@@ -9,13 +9,13 @@
  */
 async function checkUserProfile(email) {
     try {
-        const response = await fetch(CONFIG.endpoints.inscription, {
+        const response = await fetchWithTimeout(CONFIG.endpoints.inscription, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 email: email,
-                phone_number: '', // Vide en mode check_only
-                check_only: true   // 🔑 MODE VÉRIFICATION UNIQUEMENT
+                phone_number: '',
+                check_only: true
             })
         });
 
@@ -248,7 +248,7 @@ async function handleLogin(email, phone_number, objectif, poids) {
         if (objectif !== null) body.objectif = objectif;
         if (poids !== null) body.poids = poids;
 
-        const response = await fetch(CONFIG.endpoints.inscription, {
+        const response = await fetchWithTimeout(CONFIG.endpoints.inscription, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)

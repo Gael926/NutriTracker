@@ -2,11 +2,11 @@
 
 // Synchronise les données utilisateur (objectif, poids) depuis la DB GSheet
 async function syncUserFromDB() {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = getUser();
     if (!user.email) return;
 
     try {
-        const response = await fetch(CONFIG.endpoints.inscription, {
+        const response = await fetchWithTimeout(CONFIG.endpoints.inscription, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -77,16 +77,6 @@ async function initAppPage() {
 
     // Attacher les événements
     btnDicter.addEventListener('click', handleDictation);
-
-    // Bouton retour
-    const btnBack = document.getElementById('btn-back');
-    if (btnBack) {
-        btnBack.addEventListener('click', () => {
-            if (confirm('Voulez-vous retourner à la page d\'inscription ?')) {
-                window.location.href = 'index.html';
-            }
-        });
-    }
 
     // Modal settings
     initSettingsModal();

@@ -30,6 +30,12 @@ function closeEditModal() {
 
 // Sauvegarde les modifications de l'élément
 async function saveEditItem() {
+    const btnSave = document.querySelector('#modal-edit .action-btn-primary');
+
+    // Protection double-clic
+    if (btnSave && btnSave.disabled) return;
+    if (btnSave) btnSave.disabled = true;
+
     const rowNumber = document.getElementById('edit-row-number').value;
     const nom = document.getElementById('edit-nom').value.trim();
     const quantite = parseFloat(document.getElementById('edit-quantite').value) || 0;
@@ -42,23 +48,21 @@ async function saveEditItem() {
     // Recalculer les kcal proportionnellement si la quantité a changé
     let kcal;
     if (quantiteInitiale > 0 && quantite !== quantiteInitiale) {
-        // Calcul proportionnel : (nouvelle quantité / ancienne quantité) * anciennes kcal
         kcal = Math.round((quantite / quantiteInitiale) * kcalInitial);
-        console.log(`📊 Recalcul kcal: ${quantiteInitiale} → ${quantite} = ${kcalInitial} → ${kcal} kcal`);
     } else {
-        // Pas de changement de quantité, utiliser la valeur saisie
         kcal = parseInt(document.getElementById('edit-kcal').value, 10) || 0;
     }
 
     if (!nom) {
         showNotification('Le nom est requis');
+        if (btnSave) btnSave.disabled = false;
         return;
     }
 
     try {
-        showNotification('⏳ Mise à jour en cours...');
+        showNotification('Mise à jour en cours...');
 
-        const response = await fetch(CONFIG.endpoints.updateItem, {
+        const response = await fetchWithTimeout(CONFIG.endpoints.updateItem, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -80,11 +84,14 @@ async function saveEditItem() {
         // Rafraîchir l'historique
         setTimeout(() => {
             loadHistory();
-        }, 300);
+        }, 1000);
 
     } catch (error) {
         console.error('Erreur modification:', error);
-        showNotification('Erreur lors de la modification');
+        const isTimeout = error.message.includes('Délai');
+        showNotification(isTimeout ? 'Délai dépassé, réessayez' : 'Erreur lors de la modification');
+    } finally {
+        if (btnSave) btnSave.disabled = false;
     }
 }
 
@@ -95,9 +102,9 @@ async function deleteItem(rowNumber) {
     }
 
     try {
-        showNotification('⏳ Suppression en cours...');
+        showNotification('Suppression en cours...');
 
-        const response = await fetch(CONFIG.endpoints.deleteItem, {
+        const response = await fetchWithTimeout(CONFIG.endpoints.deleteItem, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -114,11 +121,12 @@ async function deleteItem(rowNumber) {
         // Rafraîchir l'historique
         setTimeout(() => {
             loadHistory();
-        }, 300);
+        }, 1000);
 
     } catch (error) {
         console.error('Erreur suppression:', error);
-        showNotification('Erreur lors de la suppression');
+        const isTimeout = error.message.includes('Délai');
+        showNotification(isTimeout ? 'Délai dépassé, réessayez' : 'Erreur lors de la suppression');
     }
 }
 
@@ -131,9 +139,6 @@ async function deleteItemFromModal() {
         return;
     }
 
-    // Fermer la modale d'abord
     closeEditModal();
-
-    // Appeler la fonction de suppression existante
     await deleteItem(parseInt(rowNumber, 10));
 }

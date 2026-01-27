@@ -1,12 +1,22 @@
 // GESTION DE L'HISTORIQUE
 
+// Flag anti-concurrence pour loadHistory
+let _isLoadingHistory = false;
+
 // Charge et affiche l'historique du jour depuis le serveur
 async function loadHistory() {
-  const user = JSON.parse(localStorage.getItem('user'));
+  // Empêcher les appels concurrents
+  if (_isLoadingHistory) return;
+  _isLoadingHistory = true;
+
+  const user = getUser();
   const today = getTodayISO();
   const liste = document.getElementById('historique-liste');
 
-  if (!liste || !user) return;
+  if (!liste || !user.email) {
+    _isLoadingHistory = false;
+    return;
+  }
 
   // Afficher un état de chargement
   liste.innerHTML = `
@@ -18,10 +28,8 @@ async function loadHistory() {
 
   try {
     const url = `${CONFIG.endpoints.historique}?email=${encodeURIComponent(user.email)}&date=${today}`;
-    console.log('📡 Appel historique:', url);
 
-    const response = await fetch(url);
-    console.log('📥 Réponse status:', response.status);
+    const response = await fetchWithTimeout(url);
 
     if (!response.ok) {
       throw new Error('Erreur serveur');
@@ -29,7 +37,6 @@ async function loadHistory() {
 
     // Récupérer le texte brut d'abord pour gérer les réponses vides
     const responseText = await response.text();
-    console.log('📊 Réponse brute:', responseText);
 
     // Si la réponse est vide, c'est juste qu'il n'y a pas de données
     let data = null;
@@ -37,30 +44,25 @@ async function loadHistory() {
       try {
         data = JSON.parse(responseText);
       } catch (parseError) {
-        console.log('⚠️ Réponse non-JSON, considérée comme vide');
+        console.warn('Réponse non-JSON, considérée comme vide');
         data = null;
       }
     }
-
-    console.log('📊 Données parsées:', data);
 
     // Normaliser en tableau (n8n peut retourner différents formats)
     let items = [];
     let stats = null;
 
     // n8n retourne souvent un tableau avec un seul objet: [{ items, stats }]
-    // On doit d'abord extraire cet objet
     let responseData = data;
     if (Array.isArray(data) && data.length > 0 && data[0].items) {
       responseData = data[0];
-      console.log('📊 Format tableau[objet] détecté, extraction du premier élément');
     }
 
     // Nouveau format avec items et stats
     if (responseData && responseData.items && Array.isArray(responseData.items)) {
       items = responseData.items.filter(item => item && typeof item === 'object' && Object.keys(item).length > 0);
       stats = responseData.stats || null;
-      console.log('📊 Nouveau format API - items:', items.length, 'stats:', stats ? 'présent' : 'absent');
     }
     // Ancien format - tableau direct d'items
     else if (Array.isArray(data)) {
@@ -83,9 +85,7 @@ async function loadHistory() {
         </div>
       `;
 
-      // 💧 AFFICHER LA SECTION EAU MÊME SI VIDE
       updateEauSection(stats);
-
       updateTotalFromData([], stats);
       return;
     }
@@ -93,12 +93,11 @@ async function loadHistory() {
     // Trier par numéro de ligne décroissant (plus récents en haut)
     items.sort((a, b) => (b.row_number || 0) - (a.row_number || 0));
 
-    // Afficher l'historique
+    // Afficher l'historique (sans onclick inline pour éviter XSS)
     liste.innerHTML = items.map(r => {
-      // Mapping des colonnes GSheet (noms exacts)
       const typeValue = r['Type (REPAS / SPORT)'] || r.Type || '';
       const isSport = typeValue.toUpperCase() === 'SPORT';
-      const isEau = typeValue.toUpperCase() === 'EAU'; // 💧 NOUVEAU
+      const isEau = typeValue.toUpperCase() === 'EAU';
       const aliment = r['Aliment (texte)'] || r.Aliment || 'Élément';
       const heure = r.Heure || '';
       const quantite = r.Quantite || '';
@@ -106,22 +105,18 @@ async function loadHistory() {
       const kcal = parseInt(r.Kcal || 0, 10);
       const momentText = r['Moment (Petit-déj / Déjeuner / Dîner / Sport)'] || r.Moment || (isSport ? 'Sport' : 'Repas');
 
-      // 💧 NE PAS AFFICHER L'EAU DANS L'HISTORIQUE
       if (isEau) {
-        return ''; // On skip l'eau, elle sera affichée dans la section dédiée
+        return '';
       }
 
-      // Icône selon le moment ou le type
       let icon = '🍽️';
       if (isSport) {
         icon = '🏃‍♂️';
       }
 
-      // Construire les détails avec l'heure
       let detailsParts = [];
       if (heure) detailsParts.push(heure);
 
-      // Pour le sport, convertir en minutes si l'unité est en heures
       if (quantite && unite) {
         if (isSport && unite.toLowerCase() === 'h') {
           const minutes = Math.round(parseFloat(quantite) * 60);
@@ -135,12 +130,10 @@ async function loadHistory() {
       const itemClass = isSport ? 'repas-item sport-item' : 'repas-item';
       const rowNumber = r.row_number || 0;
 
-      // Récupérer les macronutriments
       const proteines = Math.round(parseFloat(r.Proteines_g || 0));
       const glucides = Math.round(parseFloat(r.Glucides_g || 0));
       const lipides = Math.round(parseFloat(r.Lipides_g || 0));
 
-      // Afficher les macros seulement si ce n'est pas du sport
       const macrosHTML = !isSport ? `
   <div class="macros-info">
     <span class="macro macro-proteines" title="Protéines">🥩 ${proteines}g</span>
@@ -149,17 +142,20 @@ async function loadHistory() {
   </div>
 ` : '';
 
+      // Échapper le nom pour l'attribut data (évite injection HTML)
+      const safeAliment = aliment.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
       return `
   <div class="${itemClass}" data-row="${rowNumber}">
     <span class="icon">${icon}</span>
     <div class="info">
-      <span class="nom">${aliment}</span>
+      <span class="nom">${aliment.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>
       <span class="details">${momentText}${details ? ' · ' + details : ''}</span>
     </div>
     <div class="item-right">
       <span class="kcal">${isSport ? 'Objectif +' + Math.abs(kcal) : Math.abs(kcal) + ' kcal'}</span>
       ${macrosHTML}
-      <button class="btn-edit" onclick="openEditModal(${rowNumber}, '${aliment.replace(/'/g, "\\'")}', ${quantite || 0}, '${unite}', ${kcal})" title="Modifier">
+      <button class="btn-edit" data-row="${rowNumber}" data-aliment="${safeAliment}" data-quantite="${quantite || 0}" data-unite="${unite.replace(/"/g, '&quot;')}" data-kcal="${kcal}" title="Modifier">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -170,9 +166,20 @@ async function loadHistory() {
 `;
     }).join('');
 
-    // ========================================
+    // Attacher les événements click sur les boutons edit (pas de onclick inline)
+    liste.querySelectorAll('.btn-edit').forEach(btn => {
+      btn.addEventListener('click', () => {
+        openEditModal(
+          parseInt(btn.dataset.row, 10),
+          btn.dataset.aliment,
+          parseFloat(btn.dataset.quantite),
+          btn.dataset.unite,
+          parseInt(btn.dataset.kcal, 10)
+        );
+      });
+    });
+
     // 💧 AFFICHER LA SECTION EAU
-    // ========================================
     updateEauSection(stats);
 
     // Mettre à jour le total avec les données reçues et les stats
@@ -180,15 +187,18 @@ async function loadHistory() {
 
   } catch (error) {
     console.error('Erreur chargement historique:', error);
+    const isTimeout = error.message.includes('Délai');
     liste.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">⚠️</div>
-        <p class="empty-text">Erreur de connexion</p>
-        <p class="empty-subtext">Vérifiez votre connexion internet</p>
+        <p class="empty-text">${isTimeout ? 'Délai dépassé' : 'Erreur de connexion'}</p>
+        <p class="empty-subtext">${isTimeout ? 'Le serveur met trop de temps à répondre' : 'Vérifiez votre connexion internet'}</p>
       </div>
     `;
     updateEauSection(null);
     updateTotalFromData([], null);
+  } finally {
+    _isLoadingHistory = false;
   }
 }
 
@@ -196,7 +206,6 @@ async function loadHistory() {
 // 💧 FONCTION POUR METTRE À JOUR LA BARRE D'EAU
 // ========================================
 function updateEauSection(stats) {
-  // Récupérer les éléments de la barre d'eau intégrée
   const totalEau = document.getElementById('total-eau');
   const barreEau = document.getElementById('barre-eau');
   const pourcentageEau = document.getElementById('pourcentage-eau');
@@ -208,15 +217,13 @@ function updateEauSection(stats) {
     const eau = stats.eau;
     const pourcentage = Math.min(eau.pourcentage, 100);
 
-    // Mettre à jour l'affichage
     totalEau.textContent = `${eau.consomme}L / ${eau.objectif}L`;
     barreEau.style.width = `${pourcentage}%`;
     pourcentageEau.textContent = `${Math.round(pourcentage)}%`;
 
-    // Mettre à jour le statut
     if (eauStatus) {
       if (eau.restant <= 0) {
-        eauStatus.textContent = '✅ Objectif atteint !';
+        eauStatus.textContent = 'Objectif atteint !';
         eauStatus.className = 'eau-status objectif-atteint';
       } else {
         eauStatus.textContent = `Encore ${eau.restant}L à boire`;
@@ -224,7 +231,6 @@ function updateEauSection(stats) {
       }
     }
   } else {
-    // Valeurs par défaut si pas de données
     totalEau.textContent = '0 / 2L';
     barreEau.style.width = '0%';
     pourcentageEau.textContent = '0%';

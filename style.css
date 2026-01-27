@@ -259,6 +259,18 @@ body {
   gap: 0.625rem;
 }
 
+.header-logo {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-logo .brand-icon {
+  font-size: 1.75rem;
+}
+
 .brand-icon {
   font-size: 1.5rem;
 }

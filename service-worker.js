@@ -3,7 +3,8 @@
    Cache pour mode offline
    ======================================== */
 
-const CACHE_NAME = 'nutritracker-v6';
+// Incrémenter à chaque déploiement pour forcer le rafraîchissement du cache
+const CACHE_NAME = 'nutritracker-v7';
 
 // Fichiers à mettre en cache
 const urlsToCache = [
