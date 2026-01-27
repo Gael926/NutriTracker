@@ -27,7 +27,7 @@ async function sendToN8n(texte) {
         if (data.data && Array.isArray(data.data)) {
             // Notification de succès
             const count = data.data.length;
-            showNotification(`✅ ${count} aliment${count > 1 ? 's' : ''} enregistré${count > 1 ? 's' : ''} !`);
+            showNotification(`${count} aliment${count > 1 ? 's' : ''} enregistré${count > 1 ? 's' : ''} !`);
 
             // Rafraîchir l'historique depuis le serveur (GSheet)
             // Petit délai pour laisser n8n écrire dans le GSheet
@@ -41,7 +41,7 @@ async function sendToN8n(texte) {
     } catch (error) {
         console.error('Erreur n8n:', error);
         dicterStatus.textContent = 'Erreur de connexion au serveur';
-        showNotification('❌ Erreur lors de l\'envoi');
+        showNotification('Erreur lors de l\'envoi');
     } finally {
         // Remettre l'UI en état normal
         btnDicter.classList.remove('listening', 'processing');

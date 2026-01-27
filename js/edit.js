@@ -51,7 +51,7 @@ async function saveEditItem() {
     }
 
     if (!nom) {
-        showNotification('❌ Le nom est requis');
+        showNotification('Le nom est requis');
         return;
     }
 
@@ -74,7 +74,7 @@ async function saveEditItem() {
             throw new Error('Erreur serveur');
         }
 
-        showNotification('✅ Élément modifié !');
+        showNotification('Élément modifié !');
         closeEditModal();
 
         // Rafraîchir l'historique
@@ -84,7 +84,7 @@ async function saveEditItem() {
 
     } catch (error) {
         console.error('Erreur modification:', error);
-        showNotification('❌ Erreur lors de la modification');
+        showNotification('Erreur lors de la modification');
     }
 }
 
@@ -109,7 +109,7 @@ async function deleteItem(rowNumber) {
             throw new Error('Erreur serveur');
         }
 
-        showNotification('✅ Élément supprimé !');
+        showNotification('Élément supprimé !');
 
         // Rafraîchir l'historique
         setTimeout(() => {
@@ -118,7 +118,7 @@ async function deleteItem(rowNumber) {
 
     } catch (error) {
         console.error('Erreur suppression:', error);
-        showNotification('❌ Erreur lors de la suppression');
+        showNotification('Erreur lors de la suppression');
     }
 }
 
@@ -127,7 +127,7 @@ async function deleteItemFromModal() {
     const rowNumber = document.getElementById('edit-row-number').value;
 
     if (!rowNumber) {
-        showNotification('❌ Erreur: élément non identifié');
+        showNotification('Erreur: élément non identifié');
         return;
     }
 

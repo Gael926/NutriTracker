@@ -3,7 +3,7 @@
    Cache pour mode offline
    ======================================== */
 
-const CACHE_NAME = 'nutritracker-v5';
+const CACHE_NAME = 'nutritracker-v6';
 
 // Fichiers à mettre en cache
 const urlsToCache = [
@@ -25,6 +25,7 @@ const urlsToCache = [
     './js/api.js',
     './js/dictation.js',
     './js/settings.js',
+    './js/preferences-diner.js',
     './js/app-page.js',
     './js/main.js'
 ];
@@ -90,8 +91,10 @@ self.addEventListener('fetch', (event) => {
 
     if (isDevResource) {
         // Network First: essayer le réseau d'abord, puis le cache
+        // cache: 'no-cache' force à bypasser le cache HTTP du navigateur
+        // pour toujours récupérer la version la plus récente du serveur
         event.respondWith(
-            fetch(event.request)
+            fetch(event.request, { cache: 'no-cache' })
                 .then((networkResponse) => {
                     // Mettre à jour le cache avec la nouvelle version
                     if (networkResponse && networkResponse.status === 200) {

@@ -106,27 +106,58 @@ async function sendPreferencesToN8n(texte) {
             throw new Error('Erreur serveur');
         }
 
-        const data = await response.json();
+        // Lire la réponse en texte brut d'abord (comme history.js)
+        const responseText = await response.text();
+        console.log('📡 Réponse brute preferences-diner:', responseText);
 
-        // Vérifier la structure de la réponse
-        if (data.success) {
-            // Notification de succès
-            const count = data.aliments_count || 0;
-            showNotification(`✅ Préférences enregistrées ! (${count} aliment${count > 1 ? 's' : ''})`);
-            preferencesStatus.textContent = `Enregistré : "${data.texte_original}"`;
-
-            // Afficher un message encourageant
-            setTimeout(() => {
-                preferencesStatus.textContent = '🍽️ Vous recevrez un SMS à 18H avec ces aliments';
-            }, 3000);
-        } else {
-            throw new Error('Échec de l\'enregistrement');
+        let data = null;
+        if (responseText && responseText.trim()) {
+            try {
+                data = JSON.parse(responseText);
+            } catch (parseError) {
+                console.warn('Réponse non-JSON du workflow:', parseError);
+            }
         }
+
+        // Normaliser : le workflow n8n renvoie parfois un tableau
+        if (Array.isArray(data)) {
+            data = data[0] || {};
+        }
+
+        // Extraire le nombre d'aliments si disponible
+        let count = 0;
+        let originalText = texte;
+
+        if (data) {
+            count = data.aliments_count || 0;
+            originalText = data.texte_original || texte;
+
+            if (data.Preferences_Diner) {
+                try {
+                    const prefs = typeof data.Preferences_Diner === 'string'
+                        ? JSON.parse(data.Preferences_Diner)
+                        : data.Preferences_Diner;
+                    count = prefs.aliments?.length || count;
+                    originalText = prefs.texte_original || originalText;
+                } catch (e) {
+                    console.warn('Impossible de parser Preferences_Diner:', e);
+                }
+            }
+        }
+
+        // HTTP 200 = l'enregistrement a fonctionné côté n8n
+        showNotification(`Préférences enregistrées !${count > 0 ? ` (${count} aliment${count > 1 ? 's' : ''})` : ''}`);
+        preferencesStatus.textContent = `Enregistré : "${originalText}"`;
+
+        // Afficher un message encourageant
+        setTimeout(() => {
+            preferencesStatus.textContent = 'Vous recevrez un SMS à 18H avec ces aliments';
+        }, 3000);
 
     } catch (error) {
         console.error('Erreur n8n préférences:', error);
         preferencesStatus.textContent = 'Erreur de connexion au serveur';
-        showNotification('❌ Erreur lors de l\'envoi');
+        showNotification('Erreur lors de l\'envoi');
     } finally {
         // Remettre l'UI en état normal
         btnPreferences.classList.remove('listening', 'processing');
