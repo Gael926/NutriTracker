@@ -121,7 +121,11 @@
             <div class="macro-section macro-eau">
                 <div class="macro-header">
                     <span class="macro-label">💧 Eau</span>
-                    <span id="total-eau" class="macro-value">0 / 2L</span>
+                    <div class="eau-controls">
+                        <button id="btn-eau-minus" class="eau-btn eau-btn-minus" title="Retirer 0.25L">−</button>
+                        <span id="total-eau" class="macro-value">0 / 2L</span>
+                        <button id="btn-eau-plus" class="eau-btn eau-btn-plus" title="Ajouter 0.25L">+</button>
+                    </div>
                 </div>
                 <div class="progress-container">
                     <div class="progress-track">
@@ -335,6 +339,7 @@
         <script src="js/dictation.js"></script>
         <script src="js/settings.js"></script>
         <script src="js/preferences-diner.js"></script>
+        <script src="js/water.js"></script>
         <script src="js/app-page.js"></script>
         <script src="js/main.js"></script>
 </body>
