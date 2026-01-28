@@ -81,8 +81,10 @@ async function saveEditItem() {
         showNotification('Élément modifié !');
         closeEditModal();
 
-        // Rafraîchir l'historique
-        setTimeout(() => {
+        // Upsert snapshot puis rafraîchir l'historique
+        setTimeout(async () => {
+            const user = getUser();
+            await upsertSnapshot(user.email, getTodayISO());
             loadHistory();
         }, 1000);
 
@@ -118,8 +120,10 @@ async function deleteItem(rowNumber) {
 
         showNotification('Élément supprimé !');
 
-        // Rafraîchir l'historique
-        setTimeout(() => {
+        // Upsert snapshot puis rafraîchir l'historique
+        setTimeout(async () => {
+            const user = getUser();
+            await upsertSnapshot(user.email, getTodayISO());
             loadHistory();
         }, 1000);
 

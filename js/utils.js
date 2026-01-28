@@ -108,3 +108,34 @@ function formatPhoneDisplay(phone) {
 
     return phoneStr;
 }
+
+/**
+ * Upsert le snapshot journalier dans Google Sheets
+ * Appelé après toute modification qui affecte les objectifs (sport, poids, objectif kcal)
+ * @param {string} email - Email de l'utilisateur
+ * @param {string} date - Date au format YYYY-MM-DD
+ * @returns {Promise<Object>} - Réponse de l'API
+ */
+async function upsertSnapshot(email, date) {
+    try {
+        console.log('📦 Upsert snapshot:', { email, date });
+
+        const response = await fetchWithTimeout(CONFIG.endpoints.upsertSnapshot, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, date })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Snapshot upsert:', result.action || 'success');
+        return result;
+    } catch (error) {
+        console.error('❌ Erreur upsert snapshot:', error);
+        // Ne pas afficher d'erreur à l'utilisateur, c'est une opération silencieuse
+        return null;
+    }
+}

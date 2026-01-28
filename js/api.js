@@ -32,8 +32,9 @@ async function sendToN8n(texte) {
             const count = data.data.length;
             showNotification(`${count} aliment${count > 1 ? 's' : ''} enregistré${count > 1 ? 's' : ''} !`);
 
-            // Rafraîchir l'historique depuis le serveur (GSheet)
-            setTimeout(() => {
+            // Upsert snapshot puis rafraîchir l'historique
+            setTimeout(async () => {
+                await upsertSnapshot(user.email, getTodayISO());
                 loadHistory();
             }, 1000);
         } else {
