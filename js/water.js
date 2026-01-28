@@ -23,7 +23,7 @@ async function updateWater(action, amount) {
     if (isUpdatingWater) return;
     isUpdatingWater = true;
 
-    const user = JSON.parse(localStorage.getItem('user'));
+    const user = getUser();
     if (!user?.email) {
         showNotification('Utilisateur non connecté');
         isUpdatingWater = false;
@@ -37,32 +37,41 @@ async function updateWater(action, amount) {
     if (action === 'remove' && btnMinus) btnMinus.classList.add('loading');
 
     try {
-        const response = await fetch(CONFIG.endpoints.updateEau, {
+        const response = await fetchWithTimeout(CONFIG.endpoints.updateEau, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 email: user.email,
                 action: action,
                 amount: amount,
-                date: new Date().toISOString().split('T')[0]
+                date: getTodayISO()
             })
         });
 
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Erreur n8n (HTTP ' + response.status + '):', errorText);
             throw new Error('Erreur serveur');
         }
 
         // Rafraîchir l'historique pour mettre à jour l'affichage
+        // On attend un peu plus longtemps (1s) pour que GSheet traite l'écriture
         setTimeout(() => {
-            loadHistory();
-        }, 500);
+            if (typeof loadHistory === 'function') {
+                loadHistory();
+            } else {
+                console.warn('⚠️ loadHistory() n\'est pas disponible');
+                window.location.reload();
+            }
+        }, 1000);
 
         const sign = action === 'add' ? '+' : '-';
         showNotification(`${sign}${amount}L d'eau enregistré !`);
 
     } catch (error) {
-        console.error('Erreur update eau:', error);
-        showNotification('Erreur lors de la mise à jour');
+        console.error('❌ Erreur update eau:', error);
+        const isTimeout = error.message.includes('Délai');
+        showNotification(isTimeout ? 'Délai dépassé, réessayez' : 'Erreur lors de la mise à jour');
     } finally {
         isUpdatingWater = false;
         if (btnPlus) btnPlus.classList.remove('loading');

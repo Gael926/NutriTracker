@@ -217,7 +217,11 @@ function updateEauSection(stats) {
     const eau = stats.eau;
     const pourcentage = Math.min(eau.pourcentage, 100);
 
-    totalEau.textContent = `${eau.consomme}L / ${eau.objectif}L`;
+    // Formater l'eau avec 2 décimales pour éviter l'arrondi au dixième
+    const eauConsommeFormatted = Number(eau.consomme).toFixed(2).replace(/\.?0+$/, '');
+    const eauRestantFormatted = Number(eau.restant).toFixed(2).replace(/\.?0+$/, '');
+
+    totalEau.textContent = `${eauConsommeFormatted}L / ${eau.objectif}L`;
     barreEau.style.width = `${pourcentage}%`;
     pourcentageEau.textContent = `${Math.round(pourcentage)}%`;
 
@@ -226,7 +230,7 @@ function updateEauSection(stats) {
         eauStatus.textContent = 'Objectif atteint !';
         eauStatus.className = 'eau-status objectif-atteint';
       } else {
-        eauStatus.textContent = `Encore ${eau.restant}L à boire`;
+        eauStatus.textContent = `Encore ${eauRestantFormatted}L à boire`;
         eauStatus.className = 'eau-status';
       }
     }
