@@ -35,8 +35,8 @@ async function sendToN8n(texte) {
             // Upsert snapshot puis rafraîchir l'historique
             setTimeout(async () => {
                 await upsertSnapshot(user.email, getTodayISO());
-                loadHistory();
-            }, 1000);
+                await loadHistory();
+            }, 1500);
         } else {
             throw new Error('Format de réponse invalide');
         }

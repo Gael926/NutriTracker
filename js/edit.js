@@ -82,11 +82,11 @@ async function saveEditItem() {
         closeEditModal();
 
         // Upsert snapshot puis rafraîchir l'historique
+        const user = getUser();
         setTimeout(async () => {
-            const user = getUser();
             await upsertSnapshot(user.email, getTodayISO());
-            loadHistory();
-        }, 1000);
+            await loadHistory();
+        }, 1500);
 
     } catch (error) {
         console.error('Erreur modification:', error);
@@ -121,11 +121,11 @@ async function deleteItem(rowNumber) {
         showNotification('Élément supprimé !');
 
         // Upsert snapshot puis rafraîchir l'historique
+        const user = getUser();
         setTimeout(async () => {
-            const user = getUser();
             await upsertSnapshot(user.email, getTodayISO());
-            loadHistory();
-        }, 1000);
+            await loadHistory();
+        }, 1500);
 
     } catch (error) {
         console.error('Erreur suppression:', error);

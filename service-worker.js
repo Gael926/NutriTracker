@@ -4,7 +4,7 @@
    ======================================== */
 
 // Incrémenter à chaque déploiement pour forcer le rafraîchissement du cache
-const CACHE_NAME = 'nutritracker-v11';
+const CACHE_NAME = 'nutritracker-v12';
 
 // Fichiers à mettre en cache
 const urlsToCache = [
