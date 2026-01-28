@@ -1,37 +1,8 @@
 // ============================================================
-// MODULE PARTAGÉ : CALCUL DES MACROS 
-// ⚠️ IMPORTANT: Si vous modifiez cette logique, synchronisez avec le workflow n8n "SMS Dîner Quotidien Twilio"
+// SNAPSHOTS JOURNALIERS - SOURCE DE VÉRITÉ
+// ⚠️ Les objectifs sont maintenant centralisés dans Google Sheets (onglet Journaliers)
+// ⚠️ Ce module utilise EXCLUSIVEMENT les données de l'API n8n
 // ============================================================
-
-function calculerObjectifsMacros(objectifKcal, poids) {
-    const RATIO_PROTEINES_PAR_KG = 1.8;
-    const RATIO_GLUCIDES = 0.65;
-    const RATIO_LIPIDES = 0.35;
-    const KCAL_PAR_G_PROTEINES = 4;
-    const KCAL_PAR_G_GLUCIDES = 4;
-    const KCAL_PAR_G_LIPIDES = 9;
-
-    const objProteines = Math.round(poids * RATIO_PROTEINES_PAR_KG);
-    const kcalProteines = objProteines * KCAL_PAR_G_PROTEINES;
-    const kcalRestantes = objectifKcal - kcalProteines;
-    const objGlucides = Math.round((kcalRestantes * RATIO_GLUCIDES) / KCAL_PAR_G_GLUCIDES);
-    const objLipides = Math.round((kcalRestantes * RATIO_LIPIDES) / KCAL_PAR_G_LIPIDES);
-
-    const ratioProteines = Math.round((kcalProteines / objectifKcal) * 100);
-    const ratioGlucides = Math.round(((objGlucides * KCAL_PAR_G_GLUCIDES) / objectifKcal) * 100);
-    const ratioLipides = Math.round(((objLipides * KCAL_PAR_G_LIPIDES) / objectifKcal) * 100);
-
-    return {
-        proteines: objProteines,
-        glucides: objGlucides,
-        lipides: objLipides,
-        ratios: {
-            proteines: ratioProteines,
-            glucides: ratioGlucides,
-            lipides: ratioLipides
-        }
-    };
-}
 
 // ============================================================
 // GESTION DES STATS NUTRITIONNELLES
@@ -39,55 +10,56 @@ function calculerObjectifsMacros(objectifKcal, poids) {
 
 // Met à jour les stats nutritionnelles à partir des données fournies
 function updateTotalFromData(data, stats = null) {
-    const user = getUser();
-
-    // Récupérer les données utilisateur pour les calculs
-    const objectif = user.objectif || 2500;
-    const poids = user.poids || 70;  // Poids en kg, défaut 70kg
-
-    // Si on a des données de consommation de l'API, les utiliser
-    let totalKcal = 0;
-    let consommations = { kcal: 0, proteines: 0, glucides: 0, lipides: 0 };
-
-    if (stats && stats.consomme) {
-        consommations = stats.consomme;
-        totalKcal = stats.consomme.kcal;
-    } else {
-        // Fallback: calculer les calories à partir des items localement
-        totalKcal = data.reduce((sum, r) => {
-            const typeValue = r['Type (REPAS / SPORT)'] || r.Type || '';
-            const isSport = typeValue.toUpperCase() === 'SPORT';
-            const isEau = typeValue.toUpperCase() === 'EAU';
-            const kcal = parseInt(r.Kcal || 0, 10);
-
-            if (isSport || isEau) return sum;
-            return sum + kcal;
-        }, 0);
-        consommations.kcal = totalKcal;
+    // ✅ SOURCE DE VÉRITÉ = API n8n (onglet Journaliers via snapshots)
+    // Si l'API ne renvoie pas de stats, c'est une erreur critique
+    if (!stats || !stats.objectifs || !stats.consomme) {
+        console.error('❌ ERREUR CRITIQUE: L\'API n8n n\'a pas renvoyé les stats complètes');
+        showNotification('Erreur de chargement des données', 'error');
+        return;
     }
 
-    const pourcentage = Math.round((totalKcal / objectif) * 100);
+    // Utiliser EXCLUSIVEMENT les données de l'API
+    const objectifs = {
+        kcal: stats.objectifs.kcal,
+        proteines: stats.objectifs.proteines,
+        glucides: stats.objectifs.glucides,
+        lipides: stats.objectifs.lipides
+    };
 
-    // ✅ CALCUL "INTELLIGENT" DES OBJECTIFS (Source de vérité = Module Partagé)
-    const objectifs = calculerObjectifsMacros(objectif, poids);
+    const consommations = {
+        kcal: stats.consomme.kcal,
+        proteines: stats.consomme.proteines,
+        glucides: stats.consomme.glucides,
+        lipides: stats.consomme.lipides
+    };
+
+    // Calculer les pourcentages (l'API ne les recalcule pas toujours correctement)
+    const pourcentages = {
+        kcal: Math.round((consommations.kcal / objectifs.kcal) * 100) || 0,
+        proteines: Math.round((consommations.proteines / objectifs.proteines) * 100) || 0,
+        glucides: Math.round((consommations.glucides / objectifs.glucides) * 100) || 0,
+        lipides: Math.round((consommations.lipides / objectifs.lipides) * 100) || 0
+    };
+
+    // Utiliser les ratios de l'API (calculés côté backend)
+    const ratios = stats.ratios || {
+        proteines: 0,
+        glucides: 0,
+        lipides: 0
+    };
 
     // Construire l'objet stats final
     const finalStats = {
-        objectifs: {
-            kcal: objectif,
-            proteines: objectifs.proteines,
-            glucides: objectifs.glucides,
-            lipides: objectifs.lipides
-        },
+        objectifs: objectifs,
         consomme: consommations,
-        pourcentages: {
-            kcal: pourcentage,
-            proteines: Math.round((consommations.proteines / objectifs.proteines) * 100) || 0,
-            glucides: Math.round((consommations.glucides / objectifs.glucides) * 100) || 0,
-            lipides: Math.round((consommations.lipides / objectifs.lipides) * 100) || 0
-        },
-        ratios: objectifs.ratios
+        pourcentages: pourcentages,
+        ratios: ratios
     };
+
+    console.log('📊 Stats chargées depuis l\'API:', {
+        snapshotUsed: stats.snapshotUsed || false,
+        objectifs: objectifs
+    });
 
     updateNutritionDisplay(finalStats);
 }
