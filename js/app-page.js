@@ -73,7 +73,10 @@ async function initAppPage() {
     await syncUserFromDB();
 
     // Charger et afficher les données (utilise les valeurs à jour de localStorage)
-    loadHistory();
+    await loadHistory();
+
+    // Lancer la réconciliation périodique (toutes les 5 minutes)
+    NutriState.startReconciliation();
 
     // Attacher les événements
     btnDicter.addEventListener('click', handleDictation);

@@ -81,12 +81,17 @@ async function saveEditItem() {
         showNotification('Élément modifié !');
         closeEditModal();
 
-        // Upsert snapshot puis rafraîchir l'historique
-        const user = getUser();
-        setTimeout(async () => {
-            await upsertSnapshot(user.email, getTodayISO());
-            await loadHistory();
-        }, 1500);
+        // Optimistic UI : mise à jour locale immédiate
+        NutriState.updateItem(rowNumber, {
+            'Aliment (texte)': nom,
+            Quantite: quantite,
+            'Unite (g, portion, etc.)': unite,
+            Kcal: kcal
+        });
+        renderHistory(NutriState.items, NutriState.stats);
+
+        // Réconciliation en arrière-plan
+        loadHistory(true);
 
     } catch (error) {
         console.error('Erreur modification:', error);
@@ -120,12 +125,12 @@ async function deleteItem(rowNumber) {
 
         showNotification('Élément supprimé !');
 
-        // Upsert snapshot puis rafraîchir l'historique
-        const user = getUser();
-        setTimeout(async () => {
-            await upsertSnapshot(user.email, getTodayISO());
-            await loadHistory();
-        }, 1500);
+        // Optimistic UI : suppression locale immédiate
+        NutriState.removeItem(rowNumber);
+        renderHistory(NutriState.items, NutriState.stats);
+
+        // Réconciliation en arrière-plan
+        loadHistory(true);
 
     } catch (error) {
         console.error('Erreur suppression:', error);

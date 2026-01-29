@@ -103,12 +103,8 @@ function initSettingsModal() {
 
                 showNotification('Paramètres enregistrés !');
 
-                // Upsert snapshot avec nouveaux objectifs puis rafraîchir
-                await upsertSnapshot(user.email, getTodayISO());
-
-                if (typeof loadHistory === 'function') {
-                    await loadHistory();
-                }
+                // Réconciliation complète (les objectifs ont changé)
+                await loadHistory();
 
                 modal.classList.add('hidden');
 
@@ -164,11 +160,14 @@ function initSettingsModal() {
                     throw new Error('Erreur serveur');
                 }
 
-                // Upsert snapshot après suppression puis rafraîchir
-                await upsertSnapshot(user.email, today);
-                await loadHistory();
+                // Optimistic UI : vider le state local immédiatement
+                NutriState.clearItems();
+                renderHistory(NutriState.items, NutriState.stats);
                 modal.classList.add('hidden');
                 showNotification('Historique du jour effacé !');
+
+                // Réconciliation en arrière-plan
+                loadHistory(true);
 
             } catch (error) {
                 console.error('Erreur suppression historique:', error);

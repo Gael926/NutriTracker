@@ -32,11 +32,12 @@ async function sendToN8n(texte) {
             const count = data.data.length;
             showNotification(`${count} aliment${count > 1 ? 's' : ''} enregistré${count > 1 ? 's' : ''} !`);
 
-            // Upsert snapshot puis rafraîchir l'historique
-            setTimeout(async () => {
-                await upsertSnapshot(user.email, getTodayISO());
-                await loadHistory();
-            }, 1500);
+            // Optimistic UI : mise à jour locale immédiate
+            NutriState.addItems(data.data);
+            renderHistory(NutriState.items, NutriState.stats);
+
+            // Réconciliation en arrière-plan
+            loadHistory(true);
         } else {
             throw new Error('Format de réponse invalide');
         }

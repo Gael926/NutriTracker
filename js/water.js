@@ -36,6 +36,14 @@ async function updateWater(action, amount) {
     if (action === 'add' && btnPlus) btnPlus.classList.add('loading');
     if (action === 'remove' && btnMinus) btnMinus.classList.add('loading');
 
+    // Optimistic UI : mise à jour locale immédiate
+    const delta = action === 'add' ? amount : -amount;
+    NutriState.adjustWater(delta);
+    updateEauSection(NutriState.stats);
+
+    const sign = action === 'add' ? '+' : '-';
+    showNotification(`${sign}${amount}L d'eau enregistré !`);
+
     try {
         const response = await fetchWithTimeout(CONFIG.endpoints.updateEau, {
             method: 'POST',
@@ -50,26 +58,18 @@ async function updateWater(action, amount) {
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('❌ Erreur n8n (HTTP ' + response.status + '):', errorText);
+            console.error('Erreur n8n (HTTP ' + response.status + '):', errorText);
             throw new Error('Erreur serveur');
         }
 
-        // Rafraîchir l'historique pour mettre à jour l'affichage
-        // On attend un peu plus longtemps (1s) pour que GSheet traite l'écriture
-        setTimeout(() => {
-            if (typeof loadHistory === 'function') {
-                loadHistory();
-            } else {
-                console.warn('⚠️ loadHistory() n\'est pas disponible');
-                window.location.reload();
-            }
-        }, 1000);
-
-        const sign = action === 'add' ? '+' : '-';
-        showNotification(`${sign}${amount}L d'eau enregistré !`);
+        // Réconciliation en arrière-plan
+        loadHistory(true);
 
     } catch (error) {
-        console.error('❌ Erreur update eau:', error);
+        console.error('Erreur update eau:', error);
+        // Rollback optimistic update
+        NutriState.adjustWater(-delta);
+        updateEauSection(NutriState.stats);
         const isTimeout = error.message.includes('Délai');
         showNotification(isTimeout ? 'Délai dépassé, réessayez' : 'Erreur lors de la mise à jour');
     } finally {
