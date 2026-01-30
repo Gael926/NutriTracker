@@ -64,7 +64,7 @@ function renderHistory(items, stats) {
     const details = detailsParts.join(' · ');
 
     const itemClass = isSport ? 'repas-item sport-item' : 'repas-item';
-    const rowNumber = r.row_number || 0;
+    const itemId = r.ID || r.row_number || 0; // Préfère UUID
 
     const proteines = Math.round(parseFloat(r.Proteines_g || 0));
     const glucides = Math.round(parseFloat(r.Glucides_g || 0));
@@ -82,7 +82,7 @@ function renderHistory(items, stats) {
     const safeAliment = aliment.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
     return `
-  <div class="${itemClass}" data-row="${rowNumber}">
+  <div class="${itemClass}" data-id="${itemId}">
     <span class="icon">${icon}</span>
     <div class="info">
       <span class="nom">${aliment.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>
@@ -91,7 +91,7 @@ function renderHistory(items, stats) {
     <div class="item-right">
       <span class="kcal">${isSport ? 'Objectif +' + Math.abs(kcal) : Math.abs(kcal) + ' kcal'}</span>
       ${macrosHTML}
-      <button class="btn-edit" data-row="${rowNumber}" data-aliment="${safeAliment}" data-quantite="${quantite || 0}" data-unite="${unite.replace(/"/g, '&quot;')}" data-kcal="${kcal}" title="Modifier">
+      <button class="btn-edit" data-id="${itemId}" data-aliment="${safeAliment}" data-quantite="${quantite || 0}" data-unite="${unite.replace(/"/g, '&quot;')}" data-kcal="${kcal}" title="Modifier">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -106,7 +106,7 @@ function renderHistory(items, stats) {
   liste.querySelectorAll('.btn-edit').forEach(btn => {
     btn.addEventListener('click', () => {
       openEditModal(
-        parseInt(btn.dataset.row, 10),
+        btn.dataset.id, // Peut être UUID (string) ou row_number (number)
         btn.dataset.aliment,
         parseFloat(btn.dataset.quantite),
         btn.dataset.unite,
@@ -149,7 +149,9 @@ async function loadHistory(silent) {
   }
 
   try {
-    const url = `${CONFIG.endpoints.historique}?email=${encodeURIComponent(user.email)}&date=${today}`;
+    // Ajouter cache buster pour forcer refresh (évite 304 Not Modified)
+    const cacheBuster = Date.now();
+    const url = `${CONFIG.endpoints.historique}?email=${encodeURIComponent(user.email)}&date=${today}&_=${cacheBuster}`;
 
     const response = await fetchWithTimeout(url);
 

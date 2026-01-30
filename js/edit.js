@@ -1,12 +1,12 @@
 // GESTION DE L'ÉDITION ET SUPPRESSION
 
 // Ouvre la modale d'édition avec les données de l'élément
-function openEditModal(rowNumber, nom, quantite, unite, kcal) {
+function openEditModal(itemId, nom, quantite, unite, kcal) {
     const modal = document.getElementById('modal-edit');
     if (!modal) return;
 
     // Remplir les champs
-    document.getElementById('edit-row-number').value = rowNumber;
+    document.getElementById('edit-item-id').value = itemId;
     document.getElementById('edit-nom').value = nom;
     document.getElementById('edit-quantite').value = quantite;
     document.getElementById('edit-unite').value = unite;
@@ -36,7 +36,7 @@ async function saveEditItem() {
     if (btnSave && btnSave.disabled) return;
     if (btnSave) btnSave.disabled = true;
 
-    const rowNumber = document.getElementById('edit-row-number').value;
+    const itemId = document.getElementById('edit-item-id').value;
     const nom = document.getElementById('edit-nom').value.trim();
     const quantite = parseFloat(document.getElementById('edit-quantite').value) || 0;
     const unite = document.getElementById('edit-unite').value.trim();
@@ -66,7 +66,7 @@ async function saveEditItem() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                row_number: parseInt(rowNumber, 10),
+                id: itemId, // Backend détectera si UUID ou row_number
                 aliment: nom,
                 quantite: quantite,
                 unite: unite,
@@ -82,7 +82,7 @@ async function saveEditItem() {
         closeEditModal();
 
         // Optimistic UI : mise à jour locale immédiate
-        NutriState.updateItem(rowNumber, {
+        NutriState.updateItem(itemId, {
             'Aliment (texte)': nom,
             Quantite: quantite,
             'Unite (g, portion, etc.)': unite,
@@ -103,7 +103,7 @@ async function saveEditItem() {
 }
 
 // Supprime un élément de l'historique
-async function deleteItem(rowNumber) {
+async function deleteItem(itemId) {
     if (!confirm('Supprimer cet élément ?')) {
         return;
     }
@@ -115,7 +115,7 @@ async function deleteItem(rowNumber) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                row_number: parseInt(rowNumber, 10)
+                id: itemId
             })
         });
 
@@ -126,7 +126,7 @@ async function deleteItem(rowNumber) {
         showNotification('Élément supprimé !');
 
         // Optimistic UI : suppression locale immédiate
-        NutriState.removeItem(rowNumber);
+        NutriState.removeItem(itemId);
         renderHistory(NutriState.items, NutriState.stats);
 
         // Réconciliation en arrière-plan
@@ -141,13 +141,13 @@ async function deleteItem(rowNumber) {
 
 // Supprime un élément depuis la modale d'édition
 async function deleteItemFromModal() {
-    const rowNumber = document.getElementById('edit-row-number').value;
+    const itemId = document.getElementById('edit-item-id').value;
 
-    if (!rowNumber) {
+    if (!itemId) {
         showNotification('Erreur: élément non identifié');
         return;
     }
 
     closeEditModal();
-    await deleteItem(parseInt(rowNumber, 10));
+    await deleteItem(itemId);
 }

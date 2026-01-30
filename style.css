@@ -285,21 +285,9 @@ body {
 .app-container {
   max-width: 580px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
+  padding: 1rem 1.5rem 4rem;
 }
 
-/* Date Section */
-.date-section {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.date-text {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-  opacity: 0.8;
-}
 
 /* Nutrition Card */
 .nutrition-card {
@@ -1038,7 +1026,7 @@ body {
 
 @media (max-width: 640px) {
   .app-container {
-    padding: 1.5rem 1rem 3rem;
+    padding: 0.75rem 1rem 3rem;
   }
 
   .calorie-card {
@@ -1192,31 +1180,25 @@ body {
    ======================================== */
 
 @media (max-width: 640px) {
-
-  /* Sur mobile, afficher les macros en colonne sous le nom */
   .item-right {
     flex-direction: column;
     align-items: flex-end;
-    gap: 8px;
+    gap: 4px;
   }
 
   .macros-info {
-    flex-direction: column;
+    display: flex;
+    /* Force visibility */
+    flex-direction: row;
+    /* Keep horizontal on mobile if possible, or stacked if too tight */
+    flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 4px;
-    align-items: flex-end;
   }
 
   .macro {
-    font-size: 11px;
-    padding: 3px 6px;
-  }
-}
-
-@media (max-width: 480px) {
-
-  /* Sur très petits écrans, masquer complètement les macros */
-  .macros-info {
-    display: none;
+    font-size: 10px;
+    padding: 2px 4px;
   }
 }
 
@@ -1633,4 +1615,51 @@ body {
 .eau-btn.loading {
   opacity: 0.5;
   pointer-events: none;
+}
+
+.eau-btn-edit {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.eau-btn-edit:hover {
+  background: var(--surface-hover);
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: scale(1.05);
+}
+
+.eau-btn-edit:active {
+  transform: scale(0.95);
+}
+
+.eau-btn-large {
+  width: 48px;
+  height: 48px;
+  font-size: 1.5rem;
+}
+
+.water-edit-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1.5rem 0;
+}
+
+.water-edit-display {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  min-width: 120px;
+  text-align: center;
 }

@@ -27,18 +27,28 @@ const NutriState = {
         this._recalcMacros();
     },
 
-    // Supprimer un item par row_number
-    removeItem(rowNumber) {
-        const rn = parseInt(rowNumber, 10);
-        this.items = this.items.filter(item => (item.row_number || 0) !== rn);
+    // Supprimer un item par UUID ou row_number (rétrocompatibilité)
+    removeItem(identifier) {
+        // Supporte UUID (string) ou row_number (number) pour rétrocompatibilité
+        this.items = this.items.filter(item => {
+            // Préférer UUID si présent
+            if (item.ID && item.ID === identifier) return false;
+            // Fallback row_number (pour items anciens sans UUID)
+            if (!item.ID && (item.row_number || 0) === parseInt(identifier, 10)) return false;
+            return true;
+        });
         this._recalcMacros();
     },
 
-    // Modifier un item par row_number
-    updateItem(rowNumber, updates) {
-        const rn = parseInt(rowNumber, 10);
+    // Modifier un item par UUID ou row_number (rétrocompatibilité)
+    updateItem(identifier, updates) {
         this.items = this.items.map(item => {
-            if ((item.row_number || 0) === rn) {
+            // Préférer UUID
+            if (item.ID && item.ID === identifier) {
+                return { ...item, ...updates };
+            }
+            // Fallback row_number
+            if (!item.ID && (item.row_number || 0) === parseInt(identifier, 10)) {
                 return { ...item, ...updates };
             }
             return item;

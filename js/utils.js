@@ -4,7 +4,17 @@
 function fetchWithTimeout(url, options = {}, timeout = 30000) {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeout);
-    return fetch(url, { ...options, signal: controller.signal })
+
+    // Ajouter headers anti-cache pour éviter 304 Not Modified
+    const defaultHeaders = {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+    };
+
+    const headers = { ...defaultHeaders, ...(options.headers || {}) };
+
+    return fetch(url, { ...options, headers, signal: controller.signal })
         .catch((error) => {
             if (error.name === 'AbortError') {
                 throw new Error('Délai d\'attente dépassé. Réessayez.');

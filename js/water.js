@@ -5,17 +5,59 @@
 // Variable pour éviter les clics multiples rapides
 let isUpdatingWater = false;
 
-// Initialise les boutons d'eau
-function initWaterControls() {
-    const btnPlus = document.getElementById('btn-eau-plus');
-    const btnMinus = document.getElementById('btn-eau-minus');
+// Variables pour le modal d'édition
+let modalWaterValue = 0;
+let originalWaterValue = 0;
 
-    if (btnPlus) {
-        btnPlus.addEventListener('click', () => updateWater('add', 0.25));
+// Ouvre le modal d'édition de l'eau
+function openWaterEditModal() {
+    const currentWater = NutriState.stats?.eau?.consomme || 0;
+    originalWaterValue = currentWater;
+    modalWaterValue = currentWater;
+
+    updateWaterModalDisplay();
+
+    const modal = document.getElementById('modal-edit-water');
+    modal.classList.remove('hidden');
+}
+
+// Ferme le modal d'édition de l'eau
+function closeWaterEditModal() {
+    const modal = document.getElementById('modal-edit-water');
+    modal.classList.add('hidden');
+}
+
+// Ajuste la quantité d'eau dans le modal (local, pas d'appel API)
+function adjustWaterInModal(delta) {
+    modalWaterValue = Math.max(0, modalWaterValue + delta);
+    updateWaterModalDisplay();
+}
+
+// Met à jour l'affichage dans le modal
+function updateWaterModalDisplay() {
+    const display = document.getElementById('water-edit-value');
+    if (display) {
+        display.textContent = modalWaterValue.toFixed(2) + 'L';
     }
-    if (btnMinus) {
-        btnMinus.addEventListener('click', () => updateWater('remove', 0.25));
+}
+
+// Sauvegarde les modifications d'eau (UN SEUL appel API)
+async function saveWaterEdit() {
+    const delta = modalWaterValue - originalWaterValue;
+
+    // Si aucun changement, fermer le modal
+    if (delta === 0) {
+        closeWaterEditModal();
+        return;
     }
+
+    closeWaterEditModal();
+
+    // Un seul appel avec la différence totale
+    const action = delta > 0 ? 'add' : 'remove';
+    const amount = Math.abs(delta);
+
+    await updateWater(action, amount);
 }
 
 // Met à jour la quantité d'eau (ajout ou retrait)
@@ -29,12 +71,6 @@ async function updateWater(action, amount) {
         isUpdatingWater = false;
         return;
     }
-
-    // Feedback visuel immédiat
-    const btnPlus = document.getElementById('btn-eau-plus');
-    const btnMinus = document.getElementById('btn-eau-minus');
-    if (action === 'add' && btnPlus) btnPlus.classList.add('loading');
-    if (action === 'remove' && btnMinus) btnMinus.classList.add('loading');
 
     // Optimistic UI : mise à jour locale immédiate
     const delta = action === 'add' ? amount : -amount;
@@ -62,8 +98,10 @@ async function updateWater(action, amount) {
             throw new Error('Erreur serveur');
         }
 
-        // Réconciliation en arrière-plan
-        loadHistory(true);
+        // Réconciliation en arrière-plan avec délai (Google Sheets a besoin de temps pour indexer)
+        setTimeout(() => {
+            loadHistory(true);
+        }, 3000);
 
     } catch (error) {
         console.error('Erreur update eau:', error);
@@ -74,10 +112,5 @@ async function updateWater(action, amount) {
         showNotification(isTimeout ? 'Délai dépassé, réessayez' : 'Erreur lors de la mise à jour');
     } finally {
         isUpdatingWater = false;
-        if (btnPlus) btnPlus.classList.remove('loading');
-        if (btnMinus) btnMinus.classList.remove('loading');
     }
 }
-
-// Appeler l'initialisation au chargement
-document.addEventListener('DOMContentLoaded', initWaterControls);
