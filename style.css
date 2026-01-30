@@ -255,8 +255,9 @@ body {
 
 .header-brand {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.625rem;
+  gap: 2px;
 }
 
 .header-logo {
@@ -276,10 +277,35 @@ body {
 }
 
 .brand-name {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 800;
   color: var(--text-primary);
   letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.brand-title-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.brand-by {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  font-weight: 400;
+  font-style: italic;
+  opacity: 0.7;
+}
+
+.brand-author {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  opacity: 0.7;
 }
 
 .app-container {
